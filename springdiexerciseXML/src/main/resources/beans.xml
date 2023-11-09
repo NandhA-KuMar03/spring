@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+    <bean id="carService" class="com.springcore.springconfigurationdiexercise.common.CarService" lazy-init="true"/>
+    <bean id="bikeService" class="com.springcore.springconfigurationdiexercise.common.BikeService" lazy-init="true"/>
+<!--    Constructor based injection-->
+<!--    <bean id="controller" class="com.springcore.springconfigurationdiexercise.controller.Controller">-->
+<!--        <constructor-arg ref="carService"/>-->
+<!--    </bean>-->
+
+<!--    Setter based injection-->
+        <bean id="controller" class="com.springcore.springconfigurationdiexercise.controller.Controller" lazy-init="true">
+            <property name="service" ref="bikeService"></property>
+        </bean>
+</beans>
