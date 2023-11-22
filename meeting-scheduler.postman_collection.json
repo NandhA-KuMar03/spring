@@ -1,0 +1,328 @@
+{
+	"info": {
+		"_postman_id": "65e35bd6-a0e9-49fc-b1bd-5319c4c2996e",
+		"name": "meeting-scheduler",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30004937"
+	},
+	"item": [
+		{
+			"name": "Employees",
+			"item": [
+				{
+					"name": "Get all employees",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/employees",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"employees"
+							]
+						},
+						"description": "Get all employees"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Employee",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Ramesh\",\n    \"email\": \"Ramesh@cdw.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/employees",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"employees"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Teams",
+			"item": [
+				{
+					"name": "Create Team",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"teamName\" : \"Node\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Create Meeting",
+			"item": [
+				{
+					"name": "Get available rooms",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date\": \"2023-11-22\",\n    \"startTime\": \"18:00:00\",\n    \"endTime\": \"19:00:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/availability?count=3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"availability"
+							],
+							"query": [
+								{
+									"key": "count",
+									"value": "3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Meeting",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"meetingDate\" : \"2023-11-22\",\n    \"meetingStartTime\" : \"12:00:00\",\n    \"meetingEndTime\" : \"13:30:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/api/meeting?teamId=1505&roomId=1004&meetingName=Mentors meeting",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"meeting"
+							],
+							"query": [
+								{
+									"key": "teamId",
+									"value": "1505"
+								},
+								{
+									"key": "roomId",
+									"value": "1004"
+								},
+								{
+									"key": "meetingName",
+									"value": "Mentors meeting"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Update Meeting",
+			"item": [
+				{
+					"name": "Change date time and name",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/update?meetingId=15015&date=2023-11-22&meetingName=AR scrum shortened&startTime=13:31:00&endTime=15:23:00",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"update"
+							],
+							"query": [
+								{
+									"key": "meetingId",
+									"value": "15015"
+								},
+								{
+									"key": "date",
+									"value": "2023-11-22"
+								},
+								{
+									"key": "meetingName",
+									"value": "AR scrum shortened"
+								},
+								{
+									"key": "startTime",
+									"value": "13:31:00"
+								},
+								{
+									"key": "endTime",
+									"value": "15:23:00"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change room",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/changeRoom?meetingId=15015&roomId=1002",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"changeRoom"
+							],
+							"query": [
+								{
+									"key": "meetingId",
+									"value": "15015"
+								},
+								{
+									"key": "roomId",
+									"value": "1002"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change people",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/updatePeople?removePeople=8&meetingId=15015",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"updatePeople"
+							],
+							"query": [
+								{
+									"key": "addPeople",
+									"value": "8",
+									"disabled": true
+								},
+								{
+									"key": "removePeople",
+									"value": "8"
+								},
+								{
+									"key": "meetingId",
+									"value": "15015"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cancel meeting",
+			"item": [
+				{
+					"name": "Delete a meeting",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/cancel?meetingId=15015",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"cancel"
+							],
+							"query": [
+								{
+									"key": "meetingId",
+									"value": "15015"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

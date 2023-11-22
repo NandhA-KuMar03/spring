@@ -35,7 +35,9 @@ public class MeetingDetail {
     @Column(name = "meeting_end_time")
     private Time meetingEndTime;
 
-    @ManyToOne
+    @ManyToOne(cascade = {
+            CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH
+    })
     @JoinColumn(name = "employee_id")
     private Employee employee;
 

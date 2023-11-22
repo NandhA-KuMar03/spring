@@ -10,11 +10,9 @@ import java.util.List;
 
 @Repository
 public interface MeetingDetailRepository extends JpaRepository<MeetingDetail, Integer> {
-
-//    List<MeetingDetail> findByMeetingDateAndMeetingStartTimeGreaterThanEqualMeetingEndTimeLessThanEqual(Date date, Time startTime, Time endTime);
     List<MeetingDetail> findByMeetingDate(Date date);
     List<MeetingDetail> findByMeetingMeetingId(int meetingId);
-//    List<MeetingDetail> findByMeetingId(int meetingId);
-//    List<MeetingDetail> findByMeetingStartTimeBetweenOrMeetingEndTimeBetween(Time start_time, Time end_time, Time start, Time end);
+    void deleteByEmployeeEmployeeId(int id);
+    MeetingDetail findByEmployeeEmployeeIdAndMeetingMeetingId(int id, int meetingId);
 }
 
