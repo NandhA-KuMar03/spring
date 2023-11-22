@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -106,13 +107,10 @@ public class MeetingServiceImpl implements MeetingService {
                 .map(meetingDetail -> meetingDetail.getEmployee().getEmployeeId())
                 .toList();
 
-        List<Team> teams = teamRepository.findByTeamId(teamId);
-        List<Integer> employeeIds =  teams.stream()
-                .flatMap(team -> team.getEmployees().stream())
+        Team teams = teamRepository.findByTeamId(teamId);
+        List<Employee> employees = teams.getEmployees();
+        List<Integer> employeeIds = employees.stream()
                 .map(employee -> employee.getEmployeeId())
-                .collect(Collectors.toList());
-        List<Employee> employees = teams.stream()
-                .flatMap(team -> team.getEmployees().stream())
                 .collect(Collectors.toList());
         boolean ifEmployeesAlreadyBusy = employeeIds.stream()
                 .anyMatch(employeesOnMeetingDuringRequestTime::contains);
@@ -187,6 +185,7 @@ public class MeetingServiceImpl implements MeetingService {
     @Override
     public String updateMeeting(int meetingId, Optional<Date> date, Optional<String> meetingName, Optional<Time> startTime, Optional<Time> endTime) {
         Optional<Meeting> meeting = meetingRepository.findById(meetingId);
+
         if(meeting.isEmpty())
             throw new NoSuchMeetingException("Give a valid meeting Id");
         List<MeetingDetail> meetingDetailEntity = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId());
@@ -220,7 +219,6 @@ public class MeetingServiceImpl implements MeetingService {
                     .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingId() != meetingId))
                     .distinct()
                     .collect(Collectors.toList());
-            System.out.println(overlappingMeetings);
             long n = overlappingMeetings.stream()
                     .filter(overlappingMeeting-> overlappingMeeting.getMeeting().getMeetingRoom().getMeetingRoomId() == meetingDetail1.get().getMeeting().getMeetingRoom().getMeetingRoomId()).count();
 
