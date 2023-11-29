@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class MeetingExceptionHandler {
     @ExceptionHandler
-    public ResponseEntity<MeetingErrorResponse> handleException(AlreadyRoomBookedException e){
+    public ResponseEntity<MeetingErrorResponse> handleException(MeetingException e){
         MeetingErrorResponse errorResponse = new MeetingErrorResponse();
         errorResponse.setMessage(e.getMessage());
         errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());

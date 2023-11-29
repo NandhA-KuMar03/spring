@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface MeetingRoomRepository extends JpaRepository<MeetingRoom, Integer> {
-    MeetingRoom findByMeetingRoomId(int roomId);
+    MeetingRoom findByMeetingRoomId(long roomId);
 }

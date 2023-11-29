@@ -17,7 +17,7 @@ public class Meeting {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "meeting_id")
-    private int meetingId;
+    private long meetingId;
 
     @Column(name = "meeting_name")
     private String meetingName;
@@ -37,6 +37,7 @@ public class Meeting {
     public Meeting() {
     }
 
+
     public Meeting(String meetingName, String status, int count, MeetingRoom meetingRoom) {
         this.meetingName = meetingName;
         this.status = status;
@@ -44,7 +45,7 @@ public class Meeting {
         this.meetingRoom = meetingRoom;
     }
 
-    public int getMeetingId() {
+    public long getMeetingId() {
         return meetingId;
     }
 

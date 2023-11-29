@@ -11,8 +11,7 @@ import java.util.List;
 @Repository
 public interface MeetingDetailRepository extends JpaRepository<MeetingDetail, Integer> {
     List<MeetingDetail> findByMeetingDate(Date date);
-    List<MeetingDetail> findByMeetingMeetingId(int meetingId);
-    void deleteByEmployeeEmployeeId(int id);
-    MeetingDetail findByEmployeeEmployeeIdAndMeetingMeetingId(int id, int meetingId);
+    List<MeetingDetail> findByMeetingMeetingId(long meetingId);
+    MeetingDetail findByEmployeeEmployeeIdAndMeetingMeetingId(long id, long meetingId);
 }
 

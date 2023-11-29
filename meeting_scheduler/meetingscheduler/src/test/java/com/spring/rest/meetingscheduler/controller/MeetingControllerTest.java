@@ -39,7 +39,7 @@ public class MeetingControllerTest {
         availabilityResponse.put("London",8);
 
         //When
-        when(meetingService.getAvailableRooms(meetingDetailRequest.getMeetingDate(),meetingDetailRequest.getMeetingStartTime(),meetingDetailRequest.getMeetingEndTime(),4)).thenReturn(availabilityResponse);
+        when(meetingService.getAvailableRooms(meetingDetailRequest,4)).thenReturn(availabilityResponse);
         HashMap<String,Integer> response = meetingController.getAvailability(meetingDetailRequest, Optional.of(4));
 
         //Then
@@ -55,7 +55,7 @@ public class MeetingControllerTest {
         meetingDetailRequest.setMeetingEndTime(Time.valueOf(LocalTime.parse("19:00:00")));
         String expectedResponse = "Saved";
 
-        when(meetingService.createMeeting(meetingDetailRequest.getMeetingDate(),meetingDetailRequest.getMeetingStartTime(),meetingDetailRequest.getMeetingEndTime(),3,1500,"Scrum")).thenReturn(expectedResponse);
+        when(meetingService.createMeeting(meetingDetailRequest,3,1500,"Scrum")).thenReturn(expectedResponse);
         String response = meetingController.createMeeting(meetingDetailRequest,1500, 3,"Scrum");
 
         assertEquals(OK, HttpStatus.valueOf(200));

@@ -20,7 +20,7 @@ public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "employee_id")
-    private int employeeId;
+    private long employeeId;
 
     @Column(name = "name")
     private String name;
@@ -44,7 +44,7 @@ public class Employee {
         this.email = email;
     }
 
-    public int getEmployeeId() {
+    public long getEmployeeId() {
         return employeeId;
     }
 
