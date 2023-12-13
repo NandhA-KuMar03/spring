@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Success Page</title>
+</head>
+<body>
+      <h3 th:text="${student.getFirstName}"></h3>
+      <h4 th:text="${student.getLastName}"></h4>
+      <h5 th:text="${student.getCountry}"></h5>
+        <h5 th:text="${student.getFavoriteCodingLanguage}"></h5>
+<ul>
+    <li th:each="OS : ${student.FavoriteOS}" th:text="${OS}"></li>
+</ul>
+</body>
+</html>
