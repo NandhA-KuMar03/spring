@@ -13,5 +13,7 @@ public interface MeetingDetailRepository extends JpaRepository<MeetingDetail, In
     List<MeetingDetail> findByMeetingDate(Date date);
     List<MeetingDetail> findByMeetingMeetingId(long meetingId);
     MeetingDetail findByEmployeeEmployeeIdAndMeetingMeetingId(long id, long meetingId);
+    List<MeetingDetail> findByEmployeeEmployeeId(int employeeID);
+    Long deleteByEmployeeEmployeeId(int employeeId);
 }
 

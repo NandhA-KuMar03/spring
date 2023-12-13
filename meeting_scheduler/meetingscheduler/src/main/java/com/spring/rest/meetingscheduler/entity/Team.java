@@ -2,6 +2,7 @@ package com.spring.rest.meetingscheduler.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,7 +26,7 @@ public class Team {
     @Column(name = "team_name")
     private String teamName;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "employee_team",
             joinColumns = @JoinColumn(name = "team_id"),

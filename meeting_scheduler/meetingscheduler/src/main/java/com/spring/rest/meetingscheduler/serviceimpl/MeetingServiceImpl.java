@@ -3,6 +3,7 @@ package com.spring.rest.meetingscheduler.serviceimpl;
 import com.spring.rest.meetingscheduler.entity.Employee;
 import com.spring.rest.meetingscheduler.entity.Meeting;
 import com.spring.rest.meetingscheduler.entity.MeetingDetail;
+import com.spring.rest.meetingscheduler.entity.MeetingRequestObject;
 import com.spring.rest.meetingscheduler.entity.MeetingRoom;
 import com.spring.rest.meetingscheduler.entity.Team;
 import com.spring.rest.meetingscheduler.exception.MeetingException;
@@ -12,23 +13,40 @@ import com.spring.rest.meetingscheduler.repository.MeetingRepository;
 import com.spring.rest.meetingscheduler.repository.MeetingRoomRepository;
 import com.spring.rest.meetingscheduler.repository.TeamRepository;
 import com.spring.rest.meetingscheduler.service.MeetingService;
+import org.apache.commons.validator.GenericValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.sql.Time;
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.CANNOT_DELETE_MEETING;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.CAPACITY_NOT_ENOUGH;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.DIFFERENT_MEETING_SCHEDULED;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.EMPLOYEE_NOT_IN_MEETING;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.ENTER_VALID_MEETING;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.ENTER_VALID_ROOM;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.INVALID_FORMAT;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.MEMBERS_IN_SOME_OTHER_MEETING;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.NO_SUCH_EMPLOYEE;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.NO_SUCH_MEETING;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.ROOM_ALREADY_BOOKED;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.ROOM_ALREADY_OCCUPIED;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.ROOM_HAS_LOWER_CAPACITY;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.START_AFTER_ENDTIME;
 
 @Service
 public class MeetingServiceImpl implements MeetingService {
@@ -48,6 +66,14 @@ public class MeetingServiceImpl implements MeetingService {
         this.employeeRepository = employeeRepository;
     }
 
+    public Boolean isTime(String inputTime){
+        try {
+            Time time = Time.valueOf(inputTime);
+        }catch (Exception e){
+            return false;
+        }
+        return true;
+    }
 /*  Get available rooms service
     Params: Date of the meeting, start time, end time, number of attendees
     Returns List of available rooms and capacity
@@ -56,11 +82,13 @@ public class MeetingServiceImpl implements MeetingService {
         Get all rooms other than overlapping meetings & only rooms which have capacity greater than number of attendees
 */
     @Override
-    public HashMap<String, Integer> getAvailableRooms(MeetingDetail meetingDetails, int count) {
-        Date date = meetingDetails.getMeetingDate();
-        Time startTime = meetingDetails.getMeetingStartTime();
-        Time endTime = meetingDetails.getMeetingEndTime();
-        HashMap<String, Integer> response = new HashMap<>();
+    public ResponseEntity<List<MeetingRoom>> getAvailableRooms(MeetingRequestObject meetingDetails, int count) {
+        if(! ((GenericValidator.isDate(meetingDetails.getMeetingDate(),"yyyy-mm-dd",true)) || (isTime(meetingDetails.getMeetingStartTime())) || (isTime(meetingDetails.getMeetingEndTime()))))
+            throw new MeetingException(INVALID_FORMAT);
+        Date date = Date.valueOf(LocalDate.parse(meetingDetails.getMeetingDate()));
+        Time startTime = Time.valueOf(meetingDetails.getMeetingStartTime());
+        Time endTime = Time.valueOf(meetingDetails.getMeetingEndTime());
+
         List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(date);
         List<Integer> bookedRoomIds = meetingsOnSpecificDate.stream()
                         .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(endTime) && startTime.before(meetingDetail.getMeetingEndTime()))
@@ -70,10 +98,10 @@ public class MeetingServiceImpl implements MeetingService {
         List<MeetingRoom> meetingRooms = meetingRoomRepository.findAll();
         meetingRooms.removeIf(meetingRoom -> bookedRoomIds.contains(meetingRoom.getMeetingRoomId()));
         meetingRooms.removeIf(meetingRoom -> meetingRoom.getCapacity() < count);
-        meetingRooms.stream()
-                .sorted(Comparator.comparing(meetingRoom -> meetingRoom.getCapacity()))
-                .forEach(meetingRoom -> response.put(meetingRoom.getMeetingRoomId() + " " +meetingRoom.getRoomName(), meetingRoom.getCapacity()));
-        return response;
+        Comparator<MeetingRoom> comparator = Comparator.comparing(MeetingRoom::getCapacity);
+        List<MeetingRoom> meetingRoomsSorted = meetingRooms.stream().sorted(comparator).collect(Collectors.toList());
+        ResponseEntity<List<MeetingRoom>> responseEntity = new ResponseEntity<>(meetingRoomsSorted, HttpStatus.OK);
+        return responseEntity;
     }
 
 /*
@@ -89,10 +117,12 @@ public class MeetingServiceImpl implements MeetingService {
         Create meeting
 */
     @Override
-    public String createMeeting(MeetingDetail meetingDetails, int roomId, int teamId, String meetingName) {
-        Date date = meetingDetails.getMeetingDate();
-        Time startTime = meetingDetails.getMeetingStartTime();
-        Time endTime = meetingDetails.getMeetingEndTime();
+    public String createMeeting(MeetingRequestObject meetingDetails, int roomId, int teamId, String meetingName) {
+        if(! ((GenericValidator.isDate(meetingDetails.getMeetingDate(),"yyyy-mm-dd",true)) || (isTime(meetingDetails.getMeetingStartTime())) || (isTime(meetingDetails.getMeetingEndTime()))))
+            throw new MeetingException(INVALID_FORMAT);
+        Date date = Date.valueOf(LocalDate.parse(meetingDetails.getMeetingDate()));
+        Time startTime = Time.valueOf(meetingDetails.getMeetingStartTime());
+        Time endTime = Time.valueOf(meetingDetails.getMeetingEndTime());
         List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(date);
         List<MeetingDetail> overlappingMeetings = meetingsOnSpecificDate.stream()
                 .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(endTime) && startTime.before(meetingDetail.getMeetingEndTime()))
@@ -101,7 +131,7 @@ public class MeetingServiceImpl implements MeetingService {
         long numberOfEmployeesAlreadyOccupied = overlappingMeetings.stream()
                 .filter(meetingDetail -> meetingDetail.getMeeting().getMeetingRoom().getMeetingRoomId() == roomId).count();
         if((int) numberOfEmployeesAlreadyOccupied >0)
-            throw new MeetingException("Room is already booked for the given time");
+            throw new MeetingException(ROOM_ALREADY_BOOKED);
 
         List<Long> employeesOnMeetingDuringRequestTime = overlappingMeetings.stream()
                 .map(meetingDetail -> meetingDetail.getEmployee().getEmployeeId())
@@ -115,13 +145,13 @@ public class MeetingServiceImpl implements MeetingService {
         boolean ifEmployeesAlreadyBusy = employeeIds.stream()
                 .anyMatch(employeesOnMeetingDuringRequestTime::contains);
         if(ifEmployeesAlreadyBusy)
-            throw new MeetingException("Members in some other meeting during this time");
+            throw new MeetingException(MEMBERS_IN_SOME_OTHER_MEETING);
 
         MeetingRoom meetingRoom = meetingRoomRepository.findByMeetingRoomId(roomId);
         int capacity = meetingRoom.getCapacity();
         long numberOfAttendees = employeeIds.stream().count();
         if(capacity < numberOfAttendees)
-            throw new MeetingException("Count greater than room capacity try some other room");
+            throw new MeetingException(CAPACITY_NOT_ENOUGH);
 
         try {
             Meeting meeting = new Meeting(meetingName, "ACTIVE", (int) numberOfAttendees, meetingRoom);
@@ -148,18 +178,17 @@ public class MeetingServiceImpl implements MeetingService {
 */
     @Override
     public String cancelMeeting(int meetingId) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
         LocalDateTime now = LocalDateTime.now();
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if(meeting.isEmpty())
-            throw new MeetingException("No such meeting exists");
+            throw new MeetingException(NO_SUCH_MEETING);
         List<MeetingDetail> meetingDetails = meetingDetailRepository.findByMeetingMeetingId(meetingId);
         LocalDate meetingDate = meetingDetails.get(0).getMeetingDate().toLocalDate();
         LocalTime meetingTime = meetingDetails.get(0).getMeetingStartTime().toLocalTime();
         LocalDateTime meetingDateTime = LocalDateTime.of(meetingDate,meetingTime);
         Duration duration = Duration.between(now, meetingDateTime);
         if(duration.isNegative() || duration.toMinutes() < 30)
-            throw new MeetingException("Meeting starts in half hour or the meeting is already over cannot cancel");
+            throw new MeetingException(CANNOT_DELETE_MEETING);
         meetingDetails.stream()
                 .forEach(meetingDetail -> meetingDetailRepository.delete(meetingDetail));
         meetingRepository.delete(meeting.get());
@@ -183,36 +212,36 @@ public class MeetingServiceImpl implements MeetingService {
             Update meeting
  */
     @Override
-    public String updateMeeting(int meetingId, Optional<Date> date, Optional<String> meetingName, Optional<Time> startTime, Optional<Time> endTime) {
+    public String updateMeeting(int meetingId, Date date, String meetingName, Time startTime, Time endTime) {
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
-
         if(meeting.isEmpty())
-            throw new MeetingException("Give a valid meeting Id");
+            throw new MeetingException(ENTER_VALID_MEETING);
         List<MeetingDetail> meetingDetailEntity = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId());
         Optional<MeetingDetail> meetingDetail1 = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId()).stream().findFirst();
         Time newStartTime = meetingDetail1.get().getMeetingStartTime();
         Time newEndTime = meetingDetail1.get().getMeetingEndTime();
         Date newDate = meetingDetail1.get().getMeetingDate();
 
-        if(meetingName.isPresent())
-            meeting.get().setMeetingName(meetingName.get());
+        if(meetingName != null)
+            meeting.get().setMeetingName(meetingName);
 
-        if(date.isPresent() || startTime.isPresent() || endTime.isPresent()){
-            if(date.isPresent()){
-                newDate = date.get();
+
+        if ((date != null) || (startTime != null) || (endTime != null)){
+            if(date != null){
+                newDate = date;
             }
-            if(startTime.isPresent()){
-                newStartTime = startTime.get();
+            if(startTime != null){
+                newStartTime = startTime;
             }
-            if(endTime.isPresent()){
-                newEndTime = endTime.get();
+            if(endTime != null){
+                newEndTime = endTime;
             }
             List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(newDate);
             Time finalNewEndTime = newEndTime;
             Time finalNewStartTime = newStartTime;
             Date finalNewDate = newDate;
             if(finalNewStartTime.after(finalNewEndTime))
-                throw new MeetingException("start time is after end time");
+                throw new MeetingException(START_AFTER_ENDTIME);
             List<MeetingDetail> overlappingMeetings = meetingsOnSpecificDate.stream()
                     .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(finalNewEndTime) && finalNewStartTime.before(meetingDetail.getMeetingEndTime()))
                     .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingId() != meetingId))
@@ -231,9 +260,9 @@ public class MeetingServiceImpl implements MeetingService {
             boolean ifEmployeesAlreadyBusy = employeesInCurrentMeeting.stream()
                     .anyMatch(employeesOnMeetingDuringRequestTime::contains);
             if(ifEmployeesAlreadyBusy)
-                throw new MeetingException("Employees in your meeting are not available for given date and time");
+                throw new MeetingException(MEMBERS_IN_SOME_OTHER_MEETING);
             if((int) n > 0)
-                throw new MeetingException("Some other meeting is already scheduled for given date and time");
+                throw new MeetingException(DIFFERENT_MEETING_SCHEDULED);
 
             meetingDetailEntity.stream()
                     .forEach(meetingDetail ->
@@ -260,7 +289,7 @@ public class MeetingServiceImpl implements MeetingService {
     public String updateRoom(int meetingId, int roomId) {
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if(meeting.isEmpty())
-            throw new MeetingException("Give a valid meeting Id");
+            throw new MeetingException(ENTER_VALID_MEETING);
         MeetingDetail meetingDetailEntity = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId()).get(0);
         Time startTime = meetingDetailEntity.getMeetingStartTime();
         Time endTime = meetingDetailEntity.getMeetingEndTime();
@@ -273,19 +302,19 @@ public class MeetingServiceImpl implements MeetingService {
         long n = overlappingMeetings.stream()
                 .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingRoom().getMeetingRoomId() == roomId)).count();
         if(n>0)
-            throw new MeetingException("The room is already occupied. Try some other rooms");
+            throw new MeetingException(ROOM_ALREADY_OCCUPIED);
 
 
-            MeetingRoom meetingRoom = meetingRoomRepository.findByMeetingRoomId(roomId);
-            if(meetingRoom.getCapacity() < meeting.get().getCount())
-                throw new MeetingException("This room has lower capacity find some other room");
-            try{
-                meeting.get().setMeetingRoom(meetingRoom);
-                meetingRepository.save(meeting.get());
-                return "Room changed";
-            }
+        MeetingRoom meetingRoom = meetingRoomRepository.findByMeetingRoomId(roomId);
+        if(meetingRoom.getCapacity() < meeting.get().getCount())
+            throw new MeetingException(ROOM_HAS_LOWER_CAPACITY);
+        try{
+            meeting.get().setMeetingRoom(meetingRoom);
+            meetingRepository.save(meeting.get());
+            return "Room changed";
+        }
         catch (Exception e){
-            throw new RuntimeException("Enter a correct room id");
+            throw new RuntimeException(ENTER_VALID_ROOM);
         }
     }
 
@@ -300,54 +329,53 @@ public class MeetingServiceImpl implements MeetingService {
         check if employees are available at the given time and date and add employees to meeting
  */
     @Override
-    public String updatePeople(int meetingId, Optional<List<Integer>> addPeople, Optional<List<Integer>> removePeople) {
+    public String updatePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople) {
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if (meeting.isEmpty())
-            throw new MeetingException("Give a valid meeting Id");
+            throw new MeetingException(ENTER_VALID_MEETING);
 
-        if (removePeople.isPresent()) {
-            try {
-                Stream<Integer> removeEmployees = removePeople.map(List::stream).orElse(Stream.empty());
-                removeEmployees.map(MeetingDetail -> meetingDetailRepository.findByEmployeeEmployeeIdAndMeetingMeetingId(MeetingDetail, meetingId))
-                        .forEach(meetingDetail -> meetingDetailRepository.delete(meetingDetail));
-            }
-            catch (Exception e) {
-                throw new MeetingException("Employee is not in meeting");
-            }
-            meeting.get().setCount((int) (meeting.get().getCount() - removePeople.stream().count()));
+        try {
+            Stream<Integer> removeEmployees = removePeople.stream();
+            removeEmployees.map(MeetingDetail -> meetingDetailRepository.findByEmployeeEmployeeIdAndMeetingMeetingId(MeetingDetail, meetingId))
+                    .forEach(meetingDetail -> meetingDetailRepository.delete(meetingDetail));
         }
+        catch (Exception e) {
+            throw new MeetingException(EMPLOYEE_NOT_IN_MEETING);
+        }
+        meeting.get().setCount((int) (meeting.get().getCount() - removePeople.stream().count()));
 
-        if(addPeople.isPresent()) {
-            Stream<Integer> addEmployees = addPeople.map(List::stream).orElse(Stream.empty());
-            Optional<MeetingDetail> meetingDetailEntity1 = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId()).stream().findFirst();
-            MeetingDetail meetingDetailEntity = meetingDetailEntity1.get();
-            List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(meetingDetailEntity.getMeetingDate());
-            Time startTime = meetingDetailEntity.getMeetingStartTime();
-            Time endTime = meetingDetailEntity.getMeetingEndTime();
-            List<MeetingDetail> overlappingMeetings = meetingsOnSpecificDate.stream()
-                    .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(endTime) && startTime.before(meetingDetail.getMeetingEndTime()))
-                    .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingId() != meetingId))
-                    .distinct()
-                    .collect(Collectors.toList());
-            List<Long> employeesOnMeetingDuringRequestTime = overlappingMeetings.stream()
-                    .map(meetingDetail -> meetingDetail.getEmployee().getEmployeeId())
-                    .toList();
-            boolean ifEmployeesAlreadyBusy = addEmployees
-                    .anyMatch(employeesOnMeetingDuringRequestTime::contains);
-            if (ifEmployeesAlreadyBusy)
-                throw new MeetingException("Members in some other meeting during this time");
-            Stream<Integer> addEmployees1 = addPeople.map(List::stream).orElse(Stream.empty());
-            addEmployees1
-                    .forEach(addEmployee -> {
-                        Employee employee = employeeRepository.findByEmployeeId(addEmployee);
-                        if (employee == null)
-                            throw new MeetingException("No such employee");
-                        MeetingDetail meetingDetail = new MeetingDetail(meeting.get(), meetingDetailEntity.getMeetingDate(), startTime, endTime, employee);
-                        meetingDetailRepository.save(meetingDetail);
-                    });
-            meeting.get().setCount((int) (meeting.get().getCount() + addPeople.stream().count()));
-        }
+
+        Stream<Integer> addEmployees = addPeople.stream();
+        Optional<MeetingDetail> meetingDetailEntity1 = meetingDetailRepository.findByMeetingMeetingId(meeting.get().getMeetingId()).stream().findFirst();
+        MeetingDetail meetingDetailEntity = meetingDetailEntity1.get();
+        List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(meetingDetailEntity.getMeetingDate());
+        Time startTime = meetingDetailEntity.getMeetingStartTime();
+        Time endTime = meetingDetailEntity.getMeetingEndTime();
+        List<MeetingDetail> overlappingMeetings = meetingsOnSpecificDate.stream()
+                .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(endTime) && startTime.before(meetingDetail.getMeetingEndTime()))
+                .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingId() != meetingId))
+                .distinct()
+                .collect(Collectors.toList());
+        List<Long> employeesOnMeetingDuringRequestTime = overlappingMeetings.stream()
+                .map(meetingDetail -> meetingDetail.getEmployee().getEmployeeId())
+                .toList();
+        boolean ifEmployeesAlreadyBusy = addEmployees
+                .anyMatch(employeesOnMeetingDuringRequestTime::contains);
+        if (ifEmployeesAlreadyBusy)
+            throw new MeetingException(MEMBERS_IN_SOME_OTHER_MEETING);
+        Stream<Integer> addEmployees1 = addPeople.stream();
+        addEmployees1
+                .forEach(addEmployee -> {
+                    Employee employee = employeeRepository.findByEmployeeId(addEmployee);
+                    if (employee == null)
+                        throw new MeetingException(NO_SUCH_EMPLOYEE);
+                    MeetingDetail meetingDetail = new MeetingDetail(meeting.get(), meetingDetailEntity.getMeetingDate(), startTime, endTime, employee);
+                    meetingDetailRepository.save(meetingDetail);
+                });
+        meeting.get().setCount((int) (meeting.get().getCount() + addPeople.stream().count()));
+
         meetingRepository.save(meeting.get());
         return "People updated";
     }
+
 }

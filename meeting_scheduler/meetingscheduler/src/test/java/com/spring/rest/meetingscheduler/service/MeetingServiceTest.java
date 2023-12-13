@@ -3,6 +3,7 @@ package com.spring.rest.meetingscheduler.service;
 import com.spring.rest.meetingscheduler.entity.Employee;
 import com.spring.rest.meetingscheduler.entity.Meeting;
 import com.spring.rest.meetingscheduler.entity.MeetingDetail;
+import com.spring.rest.meetingscheduler.entity.MeetingRequestObject;
 import com.spring.rest.meetingscheduler.entity.MeetingRoom;
 import com.spring.rest.meetingscheduler.entity.Team;
 import com.spring.rest.meetingscheduler.repository.EmployeeRepository;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.quality.Strictness;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -28,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mockitoSession;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,9 +54,6 @@ public class MeetingServiceTest {
 
     @Test
     void availableRooms() {
-        HashMap<String, Integer> expectedResponse = new HashMap<>();
-        expectedResponse.put("2 " + "Tanjore", 20);
-        expectedResponse.put("3 " + "Training Room 1", 35);
         Employee employee1 = new Employee("Nandha", "nandha@cdw.com");
         Employee employee2 = new Employee("Naveen", "naveen@cdw.com");
         MeetingRoom meetingRoom1 = new MeetingRoom("London", 23);
@@ -62,21 +64,22 @@ public class MeetingServiceTest {
         meetingRoom3.setMeetingRoomId(3);
         Meeting meeting1 = new Meeting("Daily scrum", "ACTIVE", 3, meetingRoom1);
         Meeting meeting2 = new Meeting("Mentor Meeting", "ACTIVE", 4, meetingRoom2);
-        Date date = new Date(2023 - 11 - 28);
-        MeetingDetail meetingDetail1 = new MeetingDetail(meeting1, Date.valueOf(LocalDate.parse("2023-11-23")), Time.valueOf(LocalTime.parse("18:00:00")), Time.valueOf(LocalTime.parse("19:00:00")), employee1);
+        Date date = new Date(2023-11-28);
+        MeetingDetail meetingDetail1 = new MeetingDetail(meeting1, Date.valueOf(LocalDate.parse("2023-11-28")), Time.valueOf(LocalTime.parse("18:00:00")), Time.valueOf(LocalTime.parse("19:00:00")), employee1);
         List<MeetingDetail> meetingDetails = new ArrayList<>();
         List<MeetingRoom> meetingRooms = new ArrayList<>();
         meetingDetails.add(meetingDetail1);
         meetingRooms.add(meetingRoom1);
         meetingRooms.add(meetingRoom2);
         meetingRooms.add(meetingRoom3);
-        MeetingDetail meetingDetail2 = new MeetingDetail();
-        meetingDetail2.setMeetingDate(date);
-        meetingDetail2.setMeetingStartTime(Time.valueOf(LocalTime.parse("23:00:00")));
-        meetingDetail2.setMeetingEndTime(Time.valueOf(LocalTime.parse("23:30:00")));
-        when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetails);
+        ResponseEntity<List<MeetingRoom>> expectedResponse = new ResponseEntity<>(meetingRooms, HttpStatus.OK);
+        MeetingRequestObject meetingDetail2 = new MeetingRequestObject();
+        meetingDetail2.setMeetingDate("2023-11-28");
+        meetingDetail2.setMeetingStartTime("11:00:00");
+        meetingDetail2.setMeetingEndTime("11:30:00");
+        when(meetingDetailRepository.findByMeetingDate(Date.valueOf(LocalDate.parse("2023-11-28")))).thenReturn(meetingDetails);
         when(meetingRoomRepository.findAll()).thenReturn(meetingRooms);
-        HashMap<String, Integer> response = meetingService.getAvailableRooms(meetingDetail2, 4);
+        ResponseEntity<List<MeetingRoom>> response = meetingService.getAvailableRooms(meetingDetail2, 4);
         assertEquals(expectedResponse, response);
     }
 
@@ -107,10 +110,10 @@ public class MeetingServiceTest {
         Team team1 = new Team("SE");
         team1.setTeamId(1);
         team1.setEmployees(employees);
-        MeetingDetail meetingDetail2 = new MeetingDetail();
-        meetingDetail2.setMeetingDate(date);
-        meetingDetail2.setMeetingStartTime(Time.valueOf(LocalTime.parse("23:00:00")));
-        meetingDetail2.setMeetingEndTime(Time.valueOf(LocalTime.parse("23:30:00")));
+        MeetingRequestObject meetingDetail2 = new MeetingRequestObject();
+        meetingDetail2.setMeetingDate("2023-11-28");
+        meetingDetail2.setMeetingStartTime("23:00:00");
+        meetingDetail2.setMeetingEndTime("23:30:00");
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetails);
         when(teamRepository.findByTeamId(1)).thenReturn(team1);
         when(meetingRoomRepository.findByMeetingRoomId(2)).thenReturn(meetingRoom2);
@@ -141,10 +144,10 @@ public class MeetingServiceTest {
         List<MeetingDetail> meetingDetails = new ArrayList<>();
         MeetingDetail meetingDetail1 = new MeetingDetail(meeting1, Date.valueOf(LocalDate.parse("2023-12-28")), Time.valueOf(LocalTime.parse("18:00:00")), Time.valueOf(LocalTime.parse("19:00:00")), employee1);
         meetingDetails.add(meetingDetail1);
-        MeetingDetail meetingDetail2 = new MeetingDetail();
-        meetingDetail2.setMeetingDate(date);
-        meetingDetail2.setMeetingStartTime(Time.valueOf(LocalTime.parse("17:30:00")));
-        meetingDetail2.setMeetingEndTime(Time.valueOf(LocalTime.parse("18:30:00")));
+        MeetingRequestObject meetingDetail2 = new MeetingRequestObject();
+        meetingDetail2.setMeetingDate("2023-12-28");
+        meetingDetail2.setMeetingStartTime("17:30:00");
+        meetingDetail2.setMeetingEndTime("18:30:00");
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetails);
         try {
             meetingService.createMeeting(meetingDetail2, 1, 1, "Smiles");
@@ -177,10 +180,13 @@ public class MeetingServiceTest {
         List<MeetingDetail> meetingDetails = new ArrayList<>();
         MeetingDetail meetingDetail1 = new MeetingDetail(meeting1, Date.valueOf(LocalDate.parse("2023-12-28")), Time.valueOf(LocalTime.parse("18:00:00")), Time.valueOf(LocalTime.parse("19:00:00")), employee1);
         meetingDetails.add(meetingDetail1);
-        MeetingDetail meetingDetail2 = new MeetingDetail();
-        meetingDetail2.setMeetingDate(date);
-        meetingDetail2.setMeetingStartTime(Time.valueOf(LocalTime.parse("17:30:00")));
-        meetingDetail2.setMeetingEndTime(Time.valueOf(LocalTime.parse("18:30:00")));
+        MeetingRequestObject meetingDetail2 = new MeetingRequestObject();
+        String date1 = "2023-12-28";
+        String startTime = "17:30:00";
+        String endTime = "18:30:00";
+        meetingDetail2.setMeetingDate(date1);
+        meetingDetail2.setMeetingStartTime(startTime);
+        meetingDetail2.setMeetingEndTime(endTime);
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetails);
         when(teamRepository.findByTeamId(2)).thenReturn(team2);
         try {
@@ -291,7 +297,7 @@ public class MeetingServiceTest {
         when(meetingRepository.findByMeetingId(1)).thenReturn(Optional.of(meeting1));
         when(meetingDetailRepository.findByMeetingMeetingId(1)).thenReturn(meetingDetails1);
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetailsAll);
-        String response = meetingService.updateMeeting(1, Optional.of(date), Optional.of("Scrum"), Optional.of(startTime), Optional.empty());
+        String response = meetingService.updateMeeting(1, date, "Scrum",  startTime , endTime);
         assertEquals(expectResponse, response);
     }
 
@@ -299,7 +305,7 @@ public class MeetingServiceTest {
     void updateTimingNoMeetingExists() {
         String expectResponse = "Give a valid meeting Id";
         try {
-            meetingService.updateMeeting(1, Optional.empty(), Optional.of("Scrum"), Optional.empty(), Optional.empty());
+            meetingService.updateMeeting(1, new Date(0), "Scrum", new Time(0), new Time(0));
         } catch (Exception e) {
             assertEquals(expectResponse, e.getMessage());
         }
@@ -341,7 +347,7 @@ public class MeetingServiceTest {
         when(meetingDetailRepository.findByMeetingMeetingId(1)).thenReturn(meetingDetails1);
         when(meetingDetailRepository.findByMeetingDate(Date.valueOf(LocalDate.parse("2023-12-28")))).thenReturn(meetingDetails1);
         try {
-            meetingService.updateMeeting(1, Optional.empty(), Optional.empty(), Optional.of(Time.valueOf(LocalTime.parse("19:30:00"))), Optional.empty());
+            meetingService.updateMeeting(1, new Date(0), "", Time.valueOf(LocalTime.parse("19:30:00")), new Time(0));
         } catch (Exception e) {
             assertEquals(expectResponse, e.getMessage());
         }
@@ -454,7 +460,6 @@ public class MeetingServiceTest {
         when(meetingRepository.findByMeetingId(1)).thenReturn(Optional.of(meeting1));
         when(meetingDetailRepository.findByMeetingMeetingId(1)).thenReturn(meetingDetails1);
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetailsAll);
-        when(meetingRoomRepository.findByMeetingRoomId(1)).thenReturn(meetingRoom1);
         try {
             meetingService.updateRoom(1, 2);
         } catch (Exception e) {
@@ -578,6 +583,6 @@ public class MeetingServiceTest {
         when(meetingDetailRepository.findByMeetingMeetingId(1)).thenReturn(meetingDetails1);
         when(meetingDetailRepository.findByMeetingDate(date)).thenReturn(meetingDetailsAll);
         when(employeeRepository.findByEmployeeId(3)).thenReturn(employee3);
-        String response = meetingService.updatePeople(1, Optional.of(addPeople), Optional.of(removePeople));
+        String response = meetingService.updatePeople(1, addPeople, removePeople);
     }
 }

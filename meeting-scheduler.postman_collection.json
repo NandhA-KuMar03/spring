@@ -58,6 +58,48 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Find Employee By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/employees/{employeeId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"employees",
+								"{employeeId}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Employee",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/employees/{employeeId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"employees",
+								"{employeeId}"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -88,6 +130,89 @@
 							"path": [
 								"api",
 								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Teams",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams/{teamId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"{teamId}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Find Team By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams/{teamId}",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"{teamId}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Employee to Team",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/api/teams/employee",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"teams",
+								"employee"
 							]
 						}
 					},
@@ -190,7 +315,7 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/update?meetingId=15015&date=2023-11-22&meetingName=AR scrum shortened&startTime=13:31:00&endTime=15:23:00",
+							"raw": "http://localhost:8080/api/meeting/dateTime?meetingId=15015&date=2023-11-22&meetingName=AR scrum shortened&startTime=13:31:00&endTime=15:23:00",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -198,7 +323,8 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"update"
+								"meeting",
+								"dateTime"
 							],
 							"query": [
 								{
@@ -232,7 +358,7 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/changeRoom?meetingId=15015&roomId=1002",
+							"raw": "http://localhost:8080/api/meeting/room?meetingId=15015&roomId=1002",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -240,7 +366,8 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"changeRoom"
+								"meeting",
+								"room"
 							],
 							"query": [
 								{
@@ -262,7 +389,7 @@
 						"method": "PATCH",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/updatePeople?removePeople=8&meetingId=15015",
+							"raw": "http://localhost:8080/api/meeting/people?removePeople=8&meetingId=15015",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -270,7 +397,8 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"updatePeople"
+								"meeting",
+								"people"
 							],
 							"query": [
 								{
@@ -302,7 +430,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/api/cancel?meetingId=15015",
+							"raw": "http://localhost:8080/api/meeting?meetingId=15015",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -310,7 +438,7 @@
 							"port": "8080",
 							"path": [
 								"api",
-								"cancel"
+								"meeting"
 							],
 							"query": [
 								{
