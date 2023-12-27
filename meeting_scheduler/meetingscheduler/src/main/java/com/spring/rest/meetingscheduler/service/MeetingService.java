@@ -3,6 +3,8 @@ package com.spring.rest.meetingscheduler.service;
 import com.spring.rest.meetingscheduler.entity.MeetingDetail;
 import com.spring.rest.meetingscheduler.entity.MeetingRequestObject;
 import com.spring.rest.meetingscheduler.entity.MeetingRoom;
+import com.spring.rest.meetingscheduler.response.MeetingResponse;
+import com.spring.rest.meetingscheduler.response.MeetingsOnSpecificDateResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.sql.Time;
@@ -11,15 +13,17 @@ import java.util.List;
 
 public interface MeetingService {
 
-    public ResponseEntity<List<MeetingRoom>> getAvailableRooms(MeetingRequestObject meetingDetail, int count);
+    public List<MeetingRoom> getAvailableRooms(MeetingRequestObject meetingDetail);
 
-    public String createMeeting(MeetingRequestObject meetingDetail, int roomId, int teamId, String meetingName);
+    public MeetingResponse createMeeting(MeetingRequestObject meetingDetail);
 
-    public String cancelMeeting(int meetingId);
+    public MeetingResponse cancelMeeting(int meetingId);
 
-    String updateMeeting(int meetingId, Date date, String meetingName, Time startTime, Time endTime);
+    MeetingResponse updateMeeting(int meetingId, Date date, String meetingName, Time startTime, Time endTime);
 
-    String updateRoom(int meetingId, int roomId);
+    MeetingResponse updateRoom(int meetingId, int roomId);
 
-    String updatePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople);
+    MeetingResponse updatePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople);
+
+    List<MeetingsOnSpecificDateResponse> getMeetings(Date date);
 }

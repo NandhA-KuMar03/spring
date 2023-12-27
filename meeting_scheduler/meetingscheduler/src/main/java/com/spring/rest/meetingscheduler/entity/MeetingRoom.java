@@ -62,4 +62,9 @@ public class MeetingRoom {
                 ", capacity=" + capacity +
                 '}';
     }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }

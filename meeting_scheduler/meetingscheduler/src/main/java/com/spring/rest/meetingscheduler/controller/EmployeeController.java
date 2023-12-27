@@ -1,9 +1,11 @@
 package com.spring.rest.meetingscheduler.controller;
 
 import com.spring.rest.meetingscheduler.entity.Employee;
+import com.spring.rest.meetingscheduler.response.CommonResponse;
 import com.spring.rest.meetingscheduler.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -41,11 +43,15 @@ public class EmployeeController implements EmployeeOperations{
     }
 
     @Override
-    public String deleteEmployee(int employeeId) {
+    public ResponseEntity<CommonResponse> deleteEmployee(int employeeId) {
         Employee employee = employeeService.findById(employeeId);
         if(employee == null)
             throw new RuntimeException("No such employee found");
         employeeService.deleteById(employeeId);
-        return "Deleted";
+        CommonResponse commonResponse = new CommonResponse();
+        commonResponse.setStatusCode(HttpStatus.OK.value());
+        commonResponse.setStatusMessage("Deleted");
+        ResponseEntity<CommonResponse> response = new ResponseEntity<>(commonResponse, HttpStatus.OK);
+        return response;
     }
 }

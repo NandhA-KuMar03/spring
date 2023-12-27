@@ -42,7 +42,9 @@ public class TeamServiceImpl implements TeamService {
 
     @Transactional
     @Override
-    public String addEmployee(int employeeId, int teamId) {
-        return teamDAO.addEmployee(employeeId, teamId);
+    public Team addEmployee(int employeeId, int teamId) {
+        teamDAO.addEmployee(employeeId, teamId);
+        Team team = teamDAO.findById(teamId);
+        return team;
     }
 }

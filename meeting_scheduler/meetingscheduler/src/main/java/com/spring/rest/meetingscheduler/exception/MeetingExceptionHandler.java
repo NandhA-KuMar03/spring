@@ -5,7 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.time.format.DateTimeParseException;
+
 import static com.spring.rest.meetingscheduler.constants.CommonConstants.INVALID_FORMAT;
+import static com.spring.rest.meetingscheduler.constants.CommonConstants.NO_SUCH_TEAM;
 
 @ControllerAdvice
 public class MeetingExceptionHandler {
@@ -33,4 +37,19 @@ public class MeetingExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<MeetingErrorResponse> handleException(DateTimeParseException e){
+        MeetingErrorResponse errorResponse = new MeetingErrorResponse();
+        errorResponse.setMessage(INVALID_FORMAT);
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<MeetingErrorResponse> handleException(NullPointerException e){
+        MeetingErrorResponse errorResponse = new MeetingErrorResponse();
+        errorResponse.setMessage(NO_SUCH_TEAM);
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }

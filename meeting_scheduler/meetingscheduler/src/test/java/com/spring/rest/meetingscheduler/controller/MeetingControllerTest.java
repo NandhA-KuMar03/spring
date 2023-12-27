@@ -1,122 +1,144 @@
 package com.spring.rest.meetingscheduler.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spring.rest.meetingscheduler.entity.MeetingRequestObject;
 import com.spring.rest.meetingscheduler.entity.MeetingRoom;
+import com.spring.rest.meetingscheduler.response.MeetingResponse;
+import com.spring.rest.meetingscheduler.response.MeetingsOnSpecificDateResponse;
 import com.spring.rest.meetingscheduler.service.MeetingService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.sql.Date;
 import java.sql.Time;
-import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(MeetingController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class MeetingControllerTest {
-    @InjectMocks
-    private MeetingController meetingController;
-    @Mock
+
+    @MockBean
     private MeetingService meetingService;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
-    void getAvailability(){
-        //Given
-        HashMap<String, Integer> availabilityResponse = new HashMap<>();
-        MeetingRequestObject meetingDetailRequest = new MeetingRequestObject();
-        meetingDetailRequest.setMeetingDate("2023-11-22");
-        meetingDetailRequest.setMeetingStartTime("18:00:00");
-        meetingDetailRequest.setMeetingEndTime("19:00:00");
-        availabilityResponse.put("Tanjore",4);
-        availabilityResponse.put("London",8);
+    public void getAvailability() throws Exception {
         List<MeetingRoom> rooms = new ArrayList<>();
         MeetingRoom meetingRoom1 = new MeetingRoom("Tanjore", 4);
         MeetingRoom meetingRoom2 = new MeetingRoom("London", 8);
         rooms.add(meetingRoom2);
         rooms.add(meetingRoom1);
-        ResponseEntity<List<MeetingRoom>> response1 = new ResponseEntity<>(rooms, HttpStatus.OK);
-
-        //When
-        when(meetingService.getAvailableRooms(meetingDetailRequest,4)).thenReturn(response1);
-        ResponseEntity<List<MeetingRoom>> response = meetingController.getAvailability(meetingDetailRequest, 4);
-
-        //Then
-        assertEquals(OK, HttpStatus.valueOf(200));
-        assertEquals(response,response1);
-    }
-
-    @Test
-    void createMeeting(){
         MeetingRequestObject meetingDetailRequest = new MeetingRequestObject();
         meetingDetailRequest.setMeetingDate("2023-11-22");
         meetingDetailRequest.setMeetingStartTime("18:00:00");
         meetingDetailRequest.setMeetingEndTime("19:00:00");
-        String expectedResponse = "Saved";
-
-        when(meetingService.createMeeting(meetingDetailRequest,3,1500,"Scrum")).thenReturn(expectedResponse);
-        String response = meetingController.createMeeting(meetingDetailRequest,1500, 3,"Scrum");
-
-        assertEquals(OK, HttpStatus.valueOf(200));
-        assertEquals(response,expectedResponse);
+        when(meetingService.getAvailableRooms(meetingDetailRequest)).thenReturn(rooms);
+        mockMvc.perform(get("/api/availability")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(meetingDetailRequest)))
+                .andExpect(status().isOk());
+//                .andExpect(jsonPath("$[0].roomName").value("Tanjore"));
+//        System.out.println(result.getResponse().getContentAsString());
     }
 
     @Test
-    void cancelMeeting(){
-        String expectedResponse = "Canceled";
-        int meetingId = 3;
-        when(meetingService.cancelMeeting(meetingId)).thenReturn(expectedResponse);
-        String response = meetingController.cancelMeeting(3);
-
-        assertEquals(OK,HttpStatus.valueOf(200));
-        assertEquals(response,expectedResponse);
+    public void createMeeting() throws Exception{
+        MeetingResponse response = new MeetingResponse();
+        response.setMeetingId(1);
+        MeetingRequestObject meetingDetailRequest = new MeetingRequestObject();
+        meetingDetailRequest.setMeetingDate("2023-11-22");
+        meetingDetailRequest.setMeetingStartTime("18:00:00");
+        meetingDetailRequest.setMeetingEndTime("19:00:00");
+        meetingDetailRequest.setTeamId(1);
+        meetingDetailRequest.setRoomId(1);
+        meetingDetailRequest.setMeetingName("Mentors meeting");
+        when(meetingService.createMeeting(meetingDetailRequest)).thenReturn(response);
+        mockMvc.perform(post("/api/meeting")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(meetingDetailRequest)))
+                .andExpect(status().isCreated())
+                .andDo(MockMvcResultHandlers.print());
     }
 
     @Test
-    void updateDateTimeMeeting(){
-        String expectedResponse = "Updated";
-        Date date = new Date(2023-11-22);
-        Time startTime = Time.valueOf(LocalTime.parse("18:30:00"));
-        Time endTime = Time.valueOf(LocalTime.parse("19:00:00"));
-        when(meetingService.updateMeeting(4,date,"Mentors meeting" ,startTime,endTime)).thenReturn(expectedResponse);
-
-        String response = meetingController.updateMeeting(4, date, "Mentors meeting", startTime, endTime);
-        assertEquals(response, expectedResponse);
-        assertEquals(OK, HttpStatus.valueOf(200));
+    public void cancelMeeting() throws Exception{
+        MeetingResponse response = new MeetingResponse();
+        response.setMeetingId(1);
+        when(meetingService.cancelMeeting(1)).thenReturn(response);
+        mockMvc.perform(delete("/api/meeting")
+                        .param("meetingId", String.valueOf(1))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void updateRoom(){
-        String expectedResponse = "Room Changed";
-        int meetingId = 3;
-        int roomId = 1005;
-        when(meetingService.updateRoom(meetingId,roomId)).thenReturn(expectedResponse);
-
-        String response = meetingController.updateRoom(meetingId,roomId);
-        assertEquals(response, expectedResponse);
-        assertEquals(OK, HttpStatus.valueOf(200));
+    public void updateMeeting() throws Exception{
+        MeetingResponse response = new MeetingResponse();
+        response.setMeetingId(1);
+        when(meetingService.updateMeeting(1,null,"Scrum", null, Time.valueOf("18:30:00"))).thenReturn(response);
+        mockMvc.perform(patch("/api/meeting/dateTime")
+                        .param("meetingId", String.valueOf(1))
+                .param("meetingName", "Scrum")
+                        .param("endTime", "18:30:00")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
-    void changePeople(){
-        String expectedResponse = "People Updated";
-        List<Integer> addPeople = List.of(3,4,5,6);
-        int meetingId = 3;
-
-        when(meetingService.updatePeople(meetingId, addPeople, Collections.emptyList())).thenReturn(expectedResponse);
-        String response = meetingController.changePeople(meetingId, addPeople, Collections.emptyList());
-        assertEquals(response, expectedResponse);
-        assertEquals(OK, HttpStatus.valueOf(200));
+    public void updateRoom() throws Exception{
+        MeetingResponse response = new MeetingResponse();
+        response.setMeetingId(1);
+        when(meetingService.updateRoom(1,2)).thenReturn(response);
+        mockMvc.perform(patch("/api/meeting/room")
+                .param("meetingId", String.valueOf(1))
+                .param("roomId", String.valueOf(1))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
     }
 
+    @Test
+    public void changePeople() throws Exception {
+        MeetingResponse response = new MeetingResponse();
+        response.setMeetingId(1);
+        List<Integer> addPeople = Arrays.asList(2, 3);
+        when(meetingService.updatePeople(2, addPeople, null)).thenReturn(response);
+        mockMvc.perform(patch("/api/meeting/people")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("meetingId", String.valueOf(1))
+                        .param("addPeople", new String[]{"2", "3"}))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void getMeetings() throws Exception{
+        List<MeetingsOnSpecificDateResponse> responses = new ArrayList<>();
+        MeetingResponse meeting1 = new MeetingResponse();
+        meeting1.setMeetingId(1);
+        MeetingResponse meeting2 = new MeetingResponse();
+        meeting2.setMeetingId(2);
+        MeetingResponse meeting3 = new MeetingResponse();
+        meeting3.setMeetingId(3);
+        when(meetingService.getMeetings(Date.valueOf("2023-11-29"))).thenReturn(responses);
+        mockMvc.perform(get("/api/meeting/date")
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("date", String.valueOf(Date.valueOf("2023-11-29"))))
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+    }
 }

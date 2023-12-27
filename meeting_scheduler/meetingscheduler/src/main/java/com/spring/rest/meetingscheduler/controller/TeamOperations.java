@@ -2,6 +2,8 @@ package com.spring.rest.meetingscheduler.controller;
 
 import com.spring.rest.meetingscheduler.entity.Employee;
 import com.spring.rest.meetingscheduler.entity.Team;
+import com.spring.rest.meetingscheduler.response.CommonResponse;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +25,8 @@ public interface TeamOperations {
     Team findById(@PathVariable int teamId);
 
     @DeleteMapping("/teams/{teamId}")
-    String deleteTeam(@PathVariable int teamId);
+    ResponseEntity<CommonResponse> deleteTeam(@PathVariable int teamId);
 
     @GetMapping("/teams/employee")
-    String addEmployeeToTeam(@RequestParam int employeeId, @RequestParam int teamID);
+    Team addEmployeeToTeam(@RequestParam int employeeId, @RequestParam int teamID);
 }

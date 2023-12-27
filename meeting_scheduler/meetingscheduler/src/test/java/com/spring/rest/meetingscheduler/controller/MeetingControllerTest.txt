@@ -1,0 +1,138 @@
+//package com.spring.rest.meetingscheduler.controller;
+//
+//import com.spring.rest.meetingscheduler.entity.MeetingRequestObject;
+//import com.spring.rest.meetingscheduler.entity.MeetingRoom;
+//import com.spring.rest.meetingscheduler.exception.MeetingErrorResponse;
+//import com.spring.rest.meetingscheduler.response.MeetingResponse;
+//import com.spring.rest.meetingscheduler.service.MeetingService;
+//import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.extension.ExtendWith;
+//import org.mockito.InjectMocks;
+//import org.mockito.Mock;
+//import org.mockito.junit.jupiter.MockitoExtension;
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+//
+//import java.sql.Date;
+//import java.sql.Time;
+//import java.time.LocalTime;
+//import java.util.ArrayList;
+//import java.util.Collections;
+//import java.util.HashMap;
+//import java.util.List;
+//
+//import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.mockito.Mockito.when;
+//import static org.springframework.http.HttpStatus.OK;
+//
+//@ExtendWith(MockitoExtension.class)
+//public class MeetingControllerTest {
+//    @InjectMocks
+//    private MeetingController meetingController;
+//    @Mock
+//    private MeetingService meetingService;
+//
+//    @Test
+//    void getAvailability(){
+//        //Given
+//        HashMap<String, Integer> availabilityResponse = new HashMap<>();
+//        MeetingRequestObject meetingDetailRequest = new MeetingRequestObject();
+//        meetingDetailRequest.setMeetingDate("2023-11-22");
+//        meetingDetailRequest.setMeetingStartTime("18:00:00");
+//        meetingDetailRequest.setMeetingEndTime("19:00:00");
+//        availabilityResponse.put("Tanjore",4);
+//        availabilityResponse.put("London",8);
+//        List<MeetingRoom> rooms = new ArrayList<>();
+//        MeetingRoom meetingRoom1 = new MeetingRoom("Tanjore", 4);
+//        MeetingRoom meetingRoom2 = new MeetingRoom("London", 8);
+//        rooms.add(meetingRoom2);
+//        rooms.add(meetingRoom1);
+//        ResponseEntity<List<MeetingRoom>> response1 = new ResponseEntity<>(rooms, HttpStatus.OK);
+//
+//        //When
+//        when(meetingService.getAvailableRooms(meetingDetailRequest)).thenReturn(response1);
+//        ResponseEntity<List<MeetingRoom>> response = meetingController.getAvailability(meetingDetailRequest);
+//
+//        //Then
+//        assertEquals(OK, HttpStatus.valueOf(200));
+//        assertEquals(response,response1);
+//    }
+//
+//    @Test
+//    void createMeeting(){
+//        MeetingRequestObject meetingDetailRequest = new MeetingRequestObject();
+//        meetingDetailRequest.setMeetingDate("2023-11-22");
+//        meetingDetailRequest.setMeetingStartTime("18:00:00");
+//        meetingDetailRequest.setMeetingEndTime("19:00:00");
+//        meetingDetailRequest.setRoomId(1001);
+//        meetingDetailRequest.setTeamId(1536);
+//        meetingDetailRequest.setMeetingName("Mentors Meeting");
+//        MeetingResponse meetingResponse = new MeetingResponse();
+//        meetingResponse.setRoomName("Mentors Meeting");
+//        meetingResponse.setMeetingDate(Date.valueOf("2023-11-22"));
+//        ResponseEntity<MeetingResponse> meetingResponseResponseEntity = new ResponseEntity<>(meetingResponse, HttpStatus.CREATED);
+//
+//        when(meetingService.createMeeting(meetingDetailRequest)).thenReturn(meetingResponseResponseEntity);
+//        ResponseEntity<MeetingResponse> response = meetingController.createMeeting(meetingDetailRequest);
+//
+//        assertEquals(OK, HttpStatus.valueOf(200));
+//        assertEquals(response,meetingResponseResponseEntity);
+//    }
+//
+//    @Test
+//    void cancelMeeting(){
+//        MeetingResponse meetingResponse = new MeetingResponse();
+//        meetingResponse.setMeetingId(1);
+//        meetingResponse.setRoomId(1001);
+//        ResponseEntity<MeetingResponse> meetingResponseResponseEntity = new ResponseEntity<>(meetingResponse, OK);
+//        int meetingId = 3;
+//        when(meetingService.cancelMeeting(meetingId)).thenReturn(meetingResponseResponseEntity);
+//        ResponseEntity<MeetingResponse> response = meetingController.cancelMeeting(3);
+//        assertEquals(OK,HttpStatus.valueOf(200));
+//        assertEquals(response,meetingResponseResponseEntity);
+//    }
+//
+//    @Test
+//    void updateDateTimeMeeting(){
+//        MeetingResponse meetingResponse = new MeetingResponse();
+//        meetingResponse.setMeetingId(1001);
+//        ResponseEntity<MeetingResponse> meetingResponseResponseEntity = new ResponseEntity<>(new MeetingResponse(), HttpStatus.OK);
+//        Date date = new Date(2023-11-22);
+//        Time startTime = Time.valueOf(LocalTime.parse("18:30:00"));
+//        Time endTime = Time.valueOf(LocalTime.parse("19:00:00"));
+//        when(meetingService.updateMeeting(4,date,"Mentors meeting" ,startTime,endTime)).thenReturn(meetingResponseResponseEntity);
+//
+//        ResponseEntity<MeetingResponse> response = meetingController.updateMeeting(4, date, "Mentors meeting", startTime, endTime);
+//        assertEquals(response, meetingResponseResponseEntity);
+//        assertEquals(OK, HttpStatus.valueOf(200));
+//    }
+//
+//    @Test
+//    void updateRoom(){
+//        MeetingResponse meetingResponse = new MeetingResponse();
+//        meetingResponse.setMeetingId(1001);
+//        ResponseEntity<MeetingResponse> meetingResponseResponseEntity = new ResponseEntity<>(new MeetingResponse(), HttpStatus.OK);
+//        int meetingId = 3;
+//        int roomId = 1005;
+//        when(meetingService.updateRoom(meetingId,roomId)).thenReturn(meetingResponseResponseEntity);
+//
+//        ResponseEntity<MeetingResponse> response = meetingController.updateRoom(meetingId,roomId);
+//        assertEquals(response, meetingResponseResponseEntity);
+//        assertEquals(OK, HttpStatus.valueOf(200));
+//    }
+//
+//    @Test
+//    void changePeople(){
+//        MeetingResponse meetingResponse = new MeetingResponse();
+//        meetingResponse.setMeetingId(1001);
+//        ResponseEntity<MeetingResponse> meetingResponseResponseEntity = new ResponseEntity<>(new MeetingResponse(), HttpStatus.OK);
+//        List<Integer> addPeople = List.of(3,4,5,6);
+//        int meetingId = 3;
+//
+//        when(meetingService.updatePeople(meetingId, addPeople, Collections.emptyList())).thenReturn(meetingResponseResponseEntity);
+//        ResponseEntity<MeetingResponse> response = meetingController.changePeople(meetingId, addPeople, Collections.emptyList());
+//        assertEquals(response, meetingResponseResponseEntity);
+//        assertEquals(OK, HttpStatus.valueOf(200));
+//    }
+//
+//}
