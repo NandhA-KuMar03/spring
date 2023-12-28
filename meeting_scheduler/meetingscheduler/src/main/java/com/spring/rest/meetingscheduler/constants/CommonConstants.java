@@ -31,4 +31,6 @@ public class CommonConstants {
     public static final String INVALID_FORMAT = "Please enter the correct format Date Format - yyyy-mm-dd Time Format - hh:mm:ss";
 
     public static final String NO_SUCH_TEAM = "No such Team/Room";
+
+    public static final String DUPLICATE_VALUES_NOT_ALLOWED = "Duplicate entries is trying to occur";
 }

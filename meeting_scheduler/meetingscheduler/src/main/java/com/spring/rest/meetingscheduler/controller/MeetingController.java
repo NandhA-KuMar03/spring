@@ -44,18 +44,18 @@ public class MeetingController implements  MeetingOperations{
     }
 
 //    Update date meeting name, start time, end time
-    public ResponseEntity<MeetingResponse> updateMeeting(@RequestParam int meetingId, @RequestParam(required = false) Date date, @RequestParam(required = false) String meetingName, @RequestParam(required = false) Time startTime, @RequestParam(required = false) Time endTime){
-        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updateMeeting(meetingId, date, meetingName, startTime, endTime));
+    public ResponseEntity<MeetingResponse> updateMeeting(@RequestBody MeetingRequestObject object){
+        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updateMeeting(object));
     }
 
 //    Change room
-    public ResponseEntity<MeetingResponse> updateRoom(@RequestParam int meetingId, @RequestParam int roomId){
-        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updateRoom(meetingId,roomId));
+    public ResponseEntity<MeetingResponse> updateRoom(@RequestBody MeetingRequestObject object){
+        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updateRoom(object));
     }
 
     @Override
-    public ResponseEntity<MeetingResponse> changePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople) {
-        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updatePeople(meetingId, addPeople, removePeople));
+    public ResponseEntity<MeetingResponse> changePeople(MeetingRequestObject object) {
+        return ResponseEntity.status(HttpStatus.OK).body(meetingService.updatePeople(object));
     }
 
     @Override

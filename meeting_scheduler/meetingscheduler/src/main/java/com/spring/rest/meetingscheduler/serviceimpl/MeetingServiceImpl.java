@@ -88,7 +88,7 @@ public class MeetingServiceImpl implements MeetingService {
         Time startTime = Time.valueOf(meetingDetails.getMeetingStartTime());
         Time endTime = Time.valueOf(meetingDetails.getMeetingEndTime());
         int count = meetingDetails.getCount();
-
+        System.out.println(count);
         List<MeetingDetail> meetingsOnSpecificDate = meetingDetailRepository.findByMeetingDate(date);
         List<Integer> bookedRoomIds = meetingsOnSpecificDate.stream()
                         .filter(meetingDetail -> meetingDetail.getMeetingStartTime().before(endTime) && startTime.before(meetingDetail.getMeetingEndTime()))
@@ -168,7 +168,7 @@ public class MeetingServiceImpl implements MeetingService {
             throw new RuntimeException(e.getMessage());
         }
         MeetingResponse meetingResponse = new MeetingResponse();
-        meetingResponse.setMeetingId((int) meeting1.getMeetingId());
+//        meetingResponse.setMeetingId((int) meeting1.getMeetingId());
         meetingResponse.setMeetingName(meetingName);
         meetingResponse.setMeetingDate(date);
         meetingResponse.setMeetingStartTime(startTime);
@@ -224,9 +224,21 @@ public class MeetingServiceImpl implements MeetingService {
             get all the employees from the overlapping meetings
             check if employees from the overlapping meetings do not match with employees from current meeting
             Update meeting
+            int meetingId, Date date, String meetingName, Time startTime, Time endTime
  */
     @Override
-    public MeetingResponse updateMeeting(int meetingId, Date date, String meetingName, Time startTime, Time endTime) {
+    public MeetingResponse updateMeeting(MeetingRequestObject object) {
+        Date date = null;
+        Time startTime = null;
+        Time endTime = null;
+        int meetingId = object.getMeetingId();
+        if(object.getMeetingDate() != null)
+            date = Date.valueOf(LocalDate.parse(object.getMeetingDate()));
+        if(object.getMeetingStartTime() != null)
+            startTime = Time.valueOf(object.getMeetingStartTime());
+        if(object.getMeetingEndTime() != null)
+            endTime = Time.valueOf(object.getMeetingEndTime());
+        String meetingName = object.getMeetingName();
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if(meeting.isEmpty())
             throw new MeetingException(ENTER_VALID_MEETING);
@@ -311,7 +323,9 @@ public class MeetingServiceImpl implements MeetingService {
         Check capacity
  */
     @Override
-    public MeetingResponse updateRoom(int meetingId, int roomId) {
+    public MeetingResponse updateRoom(MeetingRequestObject object) {
+        int meetingId = object.getMeetingId();
+        int roomId = object.getRoomId();
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if(meeting.isEmpty())
             throw new MeetingException(ENTER_VALID_MEETING);
@@ -330,10 +344,17 @@ public class MeetingServiceImpl implements MeetingService {
                 .filter(overlappingMeeting -> (overlappingMeeting.getMeeting().getMeetingRoom().getMeetingRoomId() == roomId)).count();
         if(n>0)
             throw new MeetingException(ROOM_ALREADY_OCCUPIED);
-
-
-        MeetingRoom meetingRoom = meetingRoomRepository.findByMeetingRoomId(roomId);
-        if(meetingRoom.getCapacity() < meeting.get().getCount())
+        MeetingRoom meetingRoom;
+        boolean flag = false;
+        try {
+            meetingRoom = meetingRoomRepository.findByMeetingRoomId(roomId);
+            if(meetingRoom.getCapacity() < meeting.get().getCount()) {
+                flag= true;
+            }
+        } catch (Exception e) {
+            throw new  RuntimeException(ENTER_VALID_ROOM);
+        }
+            if(flag)
             throw new MeetingException(ROOM_HAS_LOWER_CAPACITY);
         try{
             meeting.get().setMeetingRoom(meetingRoom);
@@ -361,7 +382,14 @@ public class MeetingServiceImpl implements MeetingService {
         check if employees are available at the given time and date and add employees to meeting
  */
     @Override
-    public MeetingResponse updatePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople) {
+    public MeetingResponse updatePeople(MeetingRequestObject meetingRequestObject) {
+        int meetingId = meetingRequestObject.getMeetingId();
+        List<Integer> addPeople = meetingRequestObject.getAddPeople();
+        List<Integer> removePeople = meetingRequestObject.getRemovePeople();
+        if (addPeople == null)
+            addPeople = new ArrayList<>();
+        if (removePeople == null)
+            removePeople = new ArrayList<>();
         Optional<Meeting> meeting = meetingRepository.findByMeetingId(meetingId);
         if (meeting.isEmpty())
             throw new MeetingException(ENTER_VALID_MEETING);

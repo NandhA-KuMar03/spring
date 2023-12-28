@@ -14,6 +14,6 @@ public interface TeamDAO {
 
     void deleteById(int id);
 
-    String addEmployee(int employeeId, int teamId);
+    String addEmployee(List<Integer> employeeIds, int teamId);
 
 }

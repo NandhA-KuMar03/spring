@@ -19,11 +19,11 @@ public interface MeetingService {
 
     public MeetingResponse cancelMeeting(int meetingId);
 
-    MeetingResponse updateMeeting(int meetingId, Date date, String meetingName, Time startTime, Time endTime);
+    MeetingResponse updateMeeting(MeetingRequestObject object);
 
-    MeetingResponse updateRoom(int meetingId, int roomId);
+    MeetingResponse updateRoom(MeetingRequestObject object);
 
-    MeetingResponse updatePeople(int meetingId, List<Integer> addPeople, List<Integer> removePeople);
+    MeetingResponse updatePeople(MeetingRequestObject object);
 
     List<MeetingsOnSpecificDateResponse> getMeetings(Date date);
 }

@@ -1,11 +1,9 @@
 package com.spring.rest.meetingscheduler.controller;
 
 import com.spring.rest.meetingscheduler.entity.Team;
-import com.spring.rest.meetingscheduler.response.CommonResponse;
+import com.spring.rest.meetingscheduler.request.TeamRequestObject;
 import com.spring.rest.meetingscheduler.service.TeamService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,20 +40,18 @@ public class TeamController implements TeamOperations{
     }
 
     @Override
-    public ResponseEntity<CommonResponse> deleteTeam(int teamId) {
+    public void deleteTeam(int teamId) {
         Team team = teamService.findById(teamId);
         if(team == null)
             throw new RuntimeException("No such Team");
         teamService.deleteById(teamId);
-        CommonResponse response = new CommonResponse();
-        response.setStatusMessage("Team Deleted");
-        response.setStatusCode(HttpStatus.OK.value());
-        ResponseEntity<CommonResponse> commonResponseResponseEntity = new ResponseEntity<>(response, HttpStatus.OK);
-        return commonResponseResponseEntity;
     }
 
     @Override
-    public Team addEmployeeToTeam(int employeeId, int teamID) {
-        return teamService.addEmployee(employeeId, teamID);
+    public Team addEmployeeToTeam(TeamRequestObject object) {
+        int teamID = object.getTeamId();
+        List<Integer> employeeIds = object.getEmployees();
+        System.out.println(employeeIds);
+        return teamService.addEmployee(employeeIds, teamID);
     }
 }

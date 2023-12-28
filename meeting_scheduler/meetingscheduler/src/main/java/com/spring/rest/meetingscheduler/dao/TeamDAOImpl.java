@@ -45,10 +45,12 @@ public class TeamDAOImpl implements TeamDAO{
     }
 
     @Override
-    public String addEmployee(int employeeId, int teamId) {
+    public String addEmployee(List<Integer> employeeIds, int teamId) {
         Team team = entityManager.find(Team.class, teamId);
-        Employee employee = entityManager.find(Employee.class, employeeId);
-        team.addEmployee(employee);
+        for(Integer employeeId : employeeIds){
+            Employee employee = entityManager.find(Employee.class, employeeId);
+            team.addEmployee(employee);
+        }
         return "Added";
     }
 }

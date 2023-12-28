@@ -16,14 +16,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
 import java.sql.Date;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MeetingController.class)
@@ -89,11 +87,10 @@ public class MeetingControllerTest {
     public void updateMeeting() throws Exception{
         MeetingResponse response = new MeetingResponse();
         response.setMeetingId(1);
-        when(meetingService.updateMeeting(1,null,"Scrum", null, Time.valueOf("18:30:00"))).thenReturn(response);
-        mockMvc.perform(patch("/api/meeting/dateTime")
-                        .param("meetingId", String.valueOf(1))
-                .param("meetingName", "Scrum")
-                        .param("endTime", "18:30:00")
+        MeetingRequestObject meetingRequestObject = new MeetingRequestObject();
+        when(meetingService.updateMeeting(meetingRequestObject)).thenReturn(response);
+        mockMvc.perform(put("/api/meeting/dateTime")
+                        .content(new ObjectMapper().writeValueAsString(meetingRequestObject))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
@@ -102,11 +99,11 @@ public class MeetingControllerTest {
     public void updateRoom() throws Exception{
         MeetingResponse response = new MeetingResponse();
         response.setMeetingId(1);
-        when(meetingService.updateRoom(1,2)).thenReturn(response);
+        MeetingRequestObject meetingRequestObject = new MeetingRequestObject();
+        when(meetingService.updateRoom(meetingRequestObject)).thenReturn(response);
         mockMvc.perform(patch("/api/meeting/room")
-                .param("meetingId", String.valueOf(1))
-                .param("roomId", String.valueOf(1))
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(meetingRequestObject)))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
     }
@@ -116,11 +113,11 @@ public class MeetingControllerTest {
         MeetingResponse response = new MeetingResponse();
         response.setMeetingId(1);
         List<Integer> addPeople = Arrays.asList(2, 3);
-        when(meetingService.updatePeople(2, addPeople, null)).thenReturn(response);
-        mockMvc.perform(patch("/api/meeting/people")
+        MeetingRequestObject meetingRequestObject = new MeetingRequestObject();
+        when(meetingService.updatePeople(meetingRequestObject)).thenReturn(response);
+        mockMvc.perform(put("/api/meeting/people")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .param("meetingId", String.valueOf(1))
-                        .param("addPeople", new String[]{"2", "3"}))
+                        .content(new ObjectMapper().writeValueAsString(meetingRequestObject)))
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
     }
@@ -141,4 +138,14 @@ public class MeetingControllerTest {
                 .andExpect(status().isOk())
                 .andDo(MockMvcResultHandlers.print());
     }
+
+    @Test
+    public void getMeetingsInvalid() throws Exception{
+        mockMvc.perform(get("/api/meeting/date")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("date", String.valueOf("203-11-29")))
+                .andExpect(status().isBadRequest())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
 }

@@ -1,12 +1,8 @@
 package com.spring.rest.meetingscheduler.controller;
 
-import com.spring.rest.meetingscheduler.entity.Meeting;
 import com.spring.rest.meetingscheduler.entity.MeetingRoom;
-import com.spring.rest.meetingscheduler.response.CommonResponse;
 import com.spring.rest.meetingscheduler.service.MeetingRoomService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,15 +40,10 @@ public class RoomController implements RoomOperations{
     }
 
     @Override
-    public ResponseEntity<CommonResponse> deleteTeam(int roomId) {
+    public void deleteRoom(int roomId) {
         MeetingRoom meetingRoom = meetingRoomService.findById(roomId);
         if(meetingRoom == null)
             throw new RuntimeException("No such Meeting Room");
         meetingRoomService.deleteById(roomId);
-        CommonResponse response = new CommonResponse();
-        response.setStatusCode(HttpStatus.OK.value());
-        response.setStatusMessage("Meeting Room Deleted");
-        ResponseEntity<CommonResponse> commonResponseResponseEntity = new ResponseEntity<>(response, HttpStatus.OK);
-        return commonResponseResponseEntity;
     }
 }

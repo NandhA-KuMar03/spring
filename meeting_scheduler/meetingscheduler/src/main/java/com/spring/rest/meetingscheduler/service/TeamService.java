@@ -14,6 +14,6 @@ public interface TeamService {
 
     void deleteById(int id);
 
-    Team addEmployee(int employeeId, int teamId);
+    Team addEmployee(List<Integer> employeeId, int teamId);
 
 }

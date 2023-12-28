@@ -42,8 +42,8 @@ public class TeamServiceImpl implements TeamService {
 
     @Transactional
     @Override
-    public Team addEmployee(int employeeId, int teamId) {
-        teamDAO.addEmployee(employeeId, teamId);
+    public Team addEmployee(List<Integer> employeeIds, int teamId) {
+        teamDAO.addEmployee(employeeIds, teamId);
         Team team = teamDAO.findById(teamId);
         return team;
     }
