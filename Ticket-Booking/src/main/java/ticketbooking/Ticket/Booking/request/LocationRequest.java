@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LocationRequest {
-
     @JsonProperty("name")
     private String name;
     @JsonProperty("state")
@@ -32,5 +31,4 @@ public class LocationRequest {
     private String internetDomain;
     @JsonProperty("id")
     private String id;
-
 }

@@ -1,8 +1,12 @@
 package ticketbooking.Ticket.Booking.service;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import ticketbooking.Ticket.Booking.entity.Booking;
 import ticketbooking.Ticket.Booking.entity.Cancellation;
 import ticketbooking.Ticket.Booking.entity.Hall;
+import ticketbooking.Ticket.Booking.entity.Movie;
 import ticketbooking.Ticket.Booking.entity.Screen;
 import ticketbooking.Ticket.Booking.entity.Show;
 import ticketbooking.Ticket.Booking.entity.User;
@@ -41,4 +45,10 @@ public interface UserService {
     public List<Show> getShows(String locationName, int hallId, int screenId);
 
     Show getShow(String locationName, int hallId, int screenId, int showId);
+
+    public String performLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException;
+
+    public  List<Movie> getMovies();
+
+    List<Show> getShowsOfMovie(int movieId);
 }

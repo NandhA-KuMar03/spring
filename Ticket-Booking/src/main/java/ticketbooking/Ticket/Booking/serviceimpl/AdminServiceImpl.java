@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_HALL;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_SCREEN;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_USER;
+
 @Service
 public class AdminServiceImpl implements AdminService {
 
@@ -49,7 +53,7 @@ public class AdminServiceImpl implements AdminService {
         Hall temporarySaveHall = new Hall();
         temporarySaveHall.setHallName(hall.getHallName());
         temporarySaveHall.setLocationName(hall.getLocationName());
-        temporarySaveHall.setActive(true);
+        temporarySaveHall.setActive(false);
         Hall responseHall = hallRepository.save(temporarySaveHall);
         return responseHall;
     }
@@ -58,7 +62,7 @@ public class AdminServiceImpl implements AdminService {
     public Hall deactivateHall(int hallId) {
         Optional<Hall> hall = hallRepository.findById(hallId);
         if(! hall.isPresent())
-            throw new TicketBookingSystemException("No such Hall found");
+            throw new TicketBookingSystemException(NO_SUCH_HALL);
         hall.get().setActive(false);
         List<Screen> screens = screenRepository.findAllByHallHallId(hallId);
         List<Integer> screenIds = screens.stream().map(screen -> screen.getScreenId()).collect(Collectors.toList());
@@ -84,9 +88,9 @@ public class AdminServiceImpl implements AdminService {
     public Screen createScreen(ScreenRequestObject screen) {
         Optional<Hall> hall = hallRepository.findById(screen.getHallId());
         if(! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall, Enter correct hall ID");
+            throw new TicketBookingSystemException(NO_SUCH_HALL);
         Screen temporarySaveScreen = new Screen();
-        temporarySaveScreen.setActive(true);
+        temporarySaveScreen.setActive(false);
         temporarySaveScreen.setScreenName(screen.getScreenName());
         temporarySaveScreen.setCapacity(screen.getCapacity());
         temporarySaveScreen.setHall(hall.get());
@@ -99,7 +103,7 @@ public class AdminServiceImpl implements AdminService {
     public Screen deactivateScreen(int screenId) {
         Optional<Screen> screen = screenRepository.findById(screenId);
         if (! screen.isPresent())
-            throw new TicketBookingSystemException("No such screen present");
+            throw new TicketBookingSystemException(NO_SUCH_SCREEN);
         screen.get().setActive(false);
         List<Show> shows = showRepository.findAllByScreenScreenId(screenId);
         shows.stream()
@@ -113,7 +117,7 @@ public class AdminServiceImpl implements AdminService {
     public Screen activateScreen(int screenId) {
         Optional<Screen> screen = screenRepository.findById(screenId);
         if (! screen.isPresent())
-            throw new TicketBookingSystemException("No such screen present");
+            throw new TicketBookingSystemException(NO_SUCH_SCREEN);
         screen.get().setActive(true);
         screenRepository.save(screen.get());
         return screen.get();
@@ -123,7 +127,7 @@ public class AdminServiceImpl implements AdminService {
     public Hall activateHall(int hallId) {
         Optional<Hall> hall = hallRepository.findById(hallId);
         if(! hall.isPresent())
-            throw new TicketBookingSystemException("No such Hall found");
+            throw new TicketBookingSystemException(NO_SUCH_HALL);
         hall.get().setActive(true);
         hallRepository.save(hall.get());
         return hall.get();
@@ -138,7 +142,7 @@ public class AdminServiceImpl implements AdminService {
         roles.add(role1);
         Optional<User> user = userRepository.findById(userId);
         if(! user.isPresent())
-            throw new TicketBookingSystemException("No such user found");
+            throw new TicketBookingSystemException(NO_SUCH_USER);
         user.get().setRoles(roles);
         userRepository.save(user.get());
         return user.get();

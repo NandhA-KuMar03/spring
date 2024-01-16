@@ -5,21 +5,36 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import ticketbooking.Ticket.Booking.entity.User;
+import ticketbooking.Ticket.Booking.exception.TicketBookingSystemException;
+import ticketbooking.Ticket.Booking.repository.UserRepository;
 import ticketbooking.Ticket.Booking.service.JwtService;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 @Service
 public class JwtServiceImpl implements JwtService {
 
+    private UserRepository userRepository;
+
+    @Autowired
+    public JwtServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     private static final String secretKey = "eyJhbGciOiJIUzI1NiJ9ew0KICAic3ViIjogIjEyMzQ1Njc4OTAiLA0KICAibmFtZSI6ICJBbmlzaCBOYXRoIiwNCiAgImlhdCI6IDE1MTYyMzkwMjINCn0AUOwfaHjT73Vd5MsqVDna9l7FlvwF6GuEQQHabxhGc";
 
+    private Set<String> invalidatedTokens = new HashSet<>();
     public String extractUserName(String jwtToken){
         return extractClaim(jwtToken, Claims::getSubject);
     }
@@ -64,8 +79,31 @@ public class JwtServiceImpl implements JwtService {
         return extractClaim(jwtToken, Claims::getExpiration);
     }
 
+    public void invalidateToken(String token) {
+        invalidatedTokens.add(token);
+    }
+
+    public boolean isTokenInvalid(String token) {
+        return invalidatedTokens.contains(token);
+    }
+
     public boolean isTokenValid(String jwtToken, UserDetails userDetails){
         final String userEmail = extractUserName(jwtToken);
-        return userEmail.equals(userDetails.getUsername()) && !isTokenExpired(jwtToken);
+        return userEmail.equals(userDetails.getUsername()) && !isTokenExpired(jwtToken) && !isTokenInvalid(jwtToken) && isUserActive(userEmail);
+    }
+
+    private boolean isUserActive(String userEmail) {
+        System.out.println("heer");
+        Optional<User> user =  userRepository.findUserByEmail(userEmail);
+        if (user.isPresent()){
+            System.out.println(System.currentTimeMillis() - user.get().getLastActivity());
+            if ((System.currentTimeMillis() - user.get().getLastActivity()) > 60000){
+                throw new TicketBookingSystemException("User inactive above 1 minute, try logging in again");
+            }
+            user.get().setLastActivity(System.currentTimeMillis());
+            userRepository.save(user.get());
+            return true;
+        }
+        return false;
     }
 }

@@ -1,15 +1,18 @@
 package ticketbooking.Ticket.Booking.serviceimpl;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import ticketbooking.Ticket.Booking.entity.Booking;
@@ -41,15 +44,37 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static ticketbooking.Ticket.Booking.constants.CommonConstants.BUSER;
+import static ticketbooking.Ticket.Booking.constants.CommonConstants.PRIME_URL;
+import static ticketbooking.Ticket.Booking.constants.CommonConstants.URL;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.ABOVE_18_AGE;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.ALREADY_REQUESTED_CANCELLATION;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.EMAIL_ALREADY_EXISTS;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.GENDER_ERROR;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.INVALID_CREDS;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_ACCESS_IN_PRIME_LOCATION;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_ACCESS_TO_BOOK_FOR_OTHERS;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_BOOKING;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_BOOKING_NON_EXISTING_USER;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_HALLS_IN_LOCATION;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SCREENS;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SHOWS_IN_THIS_SCREEN;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_BOOKING_BY_YOU;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_HALL;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_LOCATION;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_MOVIE;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_SCREEN;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_SUCH_SHOW;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.NO_TICKETS_LEFT;
+import static ticketbooking.Ticket.Booking.constants.ErrorConstants.SHOW_DEACTIVATED;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-
 
     private UserRepository userRepository;
     private CancellationRepository cancellationRepository;
@@ -83,14 +108,14 @@ public class UserServiceImpl implements UserService {
         String email = user.getEmail();
         Optional<User> user1 = userRepository.findUserByEmail(email);
         if(user1.isPresent())
-            throw new TicketBookingSystemException("Email already exists");
+            throw new TicketBookingSystemException(EMAIL_ALREADY_EXISTS);
         LocalDate dob = user.getDob().toLocalDate();
         LocalDate now = LocalDate.now();
         int years = Period.between(dob,now).getYears();
         if(years<18)
-            throw new TicketBookingSystemException("Should be age of above 18");
+            throw new TicketBookingSystemException(ABOVE_18_AGE);
         if(! (user.getGender().equalsIgnoreCase("m") || user.getGender().equalsIgnoreCase("f") || user.getGender().equalsIgnoreCase("o")))
-            throw new TicketBookingSystemException("Gender should be either M, F, O");
+            throw new TicketBookingSystemException(GENDER_ERROR);
         User tempUser = new User();
         List<Role> roles = new ArrayList<>();
         Role role = roleRepository.findById(1);
@@ -102,6 +127,7 @@ public class UserServiceImpl implements UserService {
         tempUser.setLastName(user.getLastName());
         tempUser.setGender(user.getGender());
         tempUser.setRoles(roles);
+        tempUser.setLastActivity(System.currentTimeMillis());
         User responseUser = userRepository.save(tempUser);
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
@@ -125,11 +151,11 @@ public class UserServiceImpl implements UserService {
         Optional<Booking> booking = bookingRepository.findById(bookingId);
         Optional<User> user = userRepository.findUserByEmail(userDetails.getUsername());
         if(! booking.isPresent())
-            throw new TicketBookingSystemException("No such booking found");
+            throw new TicketBookingSystemException(NO_BOOKING);
         if( booking.get().getBookedBy().getUserId() != user.get().getUserId())
-            throw new TicketBookingSystemException("No such booking made by you");
+            throw new TicketBookingSystemException(NO_SUCH_BOOKING_BY_YOU);
         if(booking.get().isCancelRequested())
-            throw new TicketBookingSystemException("Already requested for cancellation");
+            throw new TicketBookingSystemException(ALREADY_REQUESTED_CANCELLATION);
         booking.get().setCancelRequested(true);
         Cancellation cancellation = new Cancellation();
         cancellation.setCancelled(false);
@@ -141,8 +167,10 @@ public class UserServiceImpl implements UserService {
 
     public AuthenticationResponse login(LoginRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        var user = userRepository.findUserByEmail(request.getEmail()).orElseThrow(() -> new UsernameNotFoundException("Invalid creds"));
+        var user = userRepository.findUserByEmail(request.getEmail()).orElseThrow(() -> new UsernameNotFoundException(INVALID_CREDS));
         var jwtToken = jwtService.generateToken(user);
+        user.setLastActivity(System.currentTimeMillis());
+        userRepository.save(user);2
         return AuthenticationResponse.builder()
                 .authToken(jwtToken)
                 .build();
@@ -153,12 +181,11 @@ public class UserServiceImpl implements UserService {
         int showId = buyTicketsRequest.getShowId();
         int numberOfTickets = buyTicketsRequest.getCount();
         int userId = buyTicketsRequest.getUserId();
-        System.out.println(userId);
         Optional<Show> show = showRepository.findById(showId);
         if(! show.isPresent())
-            throw new TicketBookingSystemException("No such show");
+            throw new TicketBookingSystemException(NO_SUCH_SHOW);
         if(! show.get().isActive())
-            throw new TicketBookingSystemException("This show is deactivated or cancelled, try some other show");
+            throw new TicketBookingSystemException(SHOW_DEACTIVATED);
         Optional<Movie> movie = movieRepository.findById(show.get().getMovie().getMovieId());
         Optional<Screen> screen = screenRepository.findById(show.get().getScreen().getScreenId());
         Optional<Hall> hall = hallRepository.findById(screen.get().getHall().getHallId());
@@ -166,8 +193,8 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Optional<User> user = userRepository.findUserByEmail(userDetails.getUsername());
-        String primeUrl = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/primeLocations";
-        String url = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/locations";
+        String primeUrl = PRIME_URL;
+        String url = URL;
         RestTemplate restTemplate = new RestTemplate();
         LocationRequest[] locations = restTemplate.getForObject(primeUrl, LocationRequest[].class);
         List<LocationRequest> list = Arrays.stream(locations)
@@ -177,31 +204,32 @@ public class UserServiceImpl implements UserService {
         Booking bookingResponse = null;
         Booking booking = new Booking();
         boolean isAuthorized = false;
-
+        System.out.println(authentication.getAuthorities());
         if(authentication.getAuthorities().stream()
-                .anyMatch(r -> r.getAuthority().equals("ROLE_BUSER")))
+                .anyMatch(r -> r.getAuthority().equals(BUSER)))
             isAuthorized = true;
 
         if(locationRequest.isPresent()){
             if(! isAuthorized)
-                throw new TicketBookingSystemException("You dont have access to book tickets in prime location");
+                throw new TicketBookingSystemException(NO_ACCESS_IN_PRIME_LOCATION);
         }
 
         if(userId != 0 ){
             if(! isAuthorized)
-                throw new TicketBookingSystemException("You dont have access to book for others");
+                throw new TicketBookingSystemException(NO_ACCESS_TO_BOOK_FOR_OTHERS);
             Optional<User> user1 = userRepository.findById(userId);
             if (! user1.isPresent())
-                throw new TicketBookingSystemException("You cannot book for an non existing user");
+                throw new TicketBookingSystemException(NO_BOOKING_NON_EXISTING_USER);
             booking.setBookedFor(userId);
         }
-        else
+        else{
             booking.setBookedFor(user.get().getUserId());
+        }
 
         booking.setBookedBy(user.get());
         booking.setCancelRequested(false);
         if(screen.get().getSeatsRemaining() < numberOfTickets)
-            throw new TicketBookingSystemException("Dont have that much tickets left");
+            throw new TicketBookingSystemException(NO_TICKETS_LEFT);
         booking.setCountOfTickets(numberOfTickets);
         booking.setMovie(movie.get());
         booking.setShow(show.get());
@@ -214,8 +242,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<LocationResponse> getLocations() {
         List<LocationResponse> list = new ArrayList<>();
-        String primeUrl = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/primeLocations";
-        String url = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/locations";
+        String primeUrl = PRIME_URL;
+        String url = URL;
         RestTemplate restTemplate = new RestTemplate();
         LocationRequest[] locations = restTemplate.getForObject(primeUrl, LocationRequest[].class);
         List<LocationRequest> locationRequests = Arrays.stream(locations)
@@ -236,8 +264,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public LocationRequest getLocation(String locationName) {
         Optional<LocationRequest> response = Optional.of(new LocationRequest());
-        String primeUrl = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/primeLocations";
-        String url = "https://64f6c99b9d775408495291bd.mockapi.io/api/v1/locations";
+        String primeUrl = PRIME_URL;
+        String url = URL;
         RestTemplate restTemplate = new RestTemplate();
         LocationRequest[] locations = restTemplate.getForObject(primeUrl, LocationRequest[].class);
         List<LocationRequest> locationRequests = Arrays.stream(locations)
@@ -249,88 +277,104 @@ public class UserServiceImpl implements UserService {
             response = locationRequests2.stream().filter(locationRequest -> locationRequest.getName().equalsIgnoreCase(locationName)).findFirst();
         }
         if (! response.isPresent())
-            throw new TicketBookingSystemException("No such location found");
+            throw new TicketBookingSystemException(NO_SUCH_LOCATION);
         return response.get();
     }
 
-    @Override
-    public List<Hall> getHalls(String locationName) {
+    public List<Hall> returnHalls(String locationName){
         List<Hall> halls = hallRepository.findAllByLocationName(locationName);
         if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
+            throw new TicketBookingSystemException(NO_HALLS_IN_LOCATION);
         return halls;
     }
 
     @Override
-    public Hall getHall(String locationName, int hallId) {
-        List<Hall> halls = hallRepository.findAllByLocationName(locationName);
-        if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
+    public List<Hall> getHalls(String locationName) {
+        List<Hall> halls = returnHalls(locationName);
+        return halls;
+    }
+
+    public Optional<Hall> returnHall(int hallId, String locationName){
         Optional<Hall> hall = hallRepository.findByHallIdAndLocationName(hallId, locationName);
         if (! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall in this location");
+            throw new TicketBookingSystemException(NO_SUCH_HALL);
+        return hall;
+    }
+
+    @Override
+    public Hall getHall(String locationName, int hallId) {
+        List<Hall> halls = returnHalls(locationName);
+        Optional<Hall> hall = returnHall(hallId, locationName);
         return hall.get();
     }
 
     @Override
     public List<Screen> getScreens(String locationName, int hallId) {
-        List<Hall> halls = hallRepository.findAllByLocationName(locationName);
-        if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
-        Optional<Hall> hall = hallRepository.findByHallIdAndLocationName(hallId, locationName);
-        if (! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall in this location");
+        List<Hall> halls = returnHalls(locationName);
+        Optional<Hall> hall = returnHall(hallId, locationName);
         List<Screen> screens = screenRepository.findAllByHallHallId(hallId);
         if (screens.isEmpty())
-            throw new TicketBookingSystemException("No screens in this hall");
+            throw new TicketBookingSystemException(NO_SCREENS);
         return screens;
     }
 
     @Override
     public Screen getScreen(String locationName, int hallId, int screenId) {
-        List<Hall> halls = hallRepository.findAllByLocationName(locationName);
-        if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
-        Optional<Hall> hall = hallRepository.findByHallIdAndLocationName(hallId, locationName);
-        if (! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall in this location");
+        List<Hall> halls = returnHalls(locationName);
+        Optional<Hall> hall = returnHall(hallId, locationName);
         Optional<Screen> screen = screenRepository.findByScreenIdAndHallHallId(screenId, hallId);
         if (! screen.isPresent())
-            throw new TicketBookingSystemException("No such screen, please check the screen id");
+            throw new TicketBookingSystemException(NO_SUCH_SCREEN);
         return screen.get();
     }
 
     @Override
     public List<Show> getShows(String locationName, int hallId, int screenId) {
-        List<Hall> halls = hallRepository.findAllByLocationName(locationName);
-        if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
-        Optional<Hall> hall = hallRepository.findByHallIdAndLocationName(hallId, locationName);
-        if (! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall in this location");
+        List<Hall> halls = returnHalls(locationName);
+        Optional<Hall> hall = returnHall(hallId, locationName);
         Optional<Screen> screen = screenRepository.findByScreenIdAndHallHallId(screenId, hallId);
         if (! screen.isPresent())
-            throw new TicketBookingSystemException("No such screen, please check the screen id");
+            throw new TicketBookingSystemException(NO_SUCH_SCREEN);
         List<Show> shows = showRepository.findAllByScreenScreenId(screenId);
         if(shows.isEmpty())
-            throw new TicketBookingSystemException("No shows in this screen");
+            throw new TicketBookingSystemException(NO_SHOWS_IN_THIS_SCREEN);
         return shows;
     }
 
     @Override
     public Show getShow(String locationName, int hallId, int screenId, int showId) {
-        List<Hall> halls = hallRepository.findAllByLocationName(locationName);
-        if (halls.isEmpty())
-            throw new TicketBookingSystemException("No halls in this location");
-        Optional<Hall> hall = hallRepository.findByHallIdAndLocationName(hallId, locationName);
-        if (! hall.isPresent())
-            throw new TicketBookingSystemException("No such hall in this location");
+        List<Hall> halls = returnHalls(locationName);
+        Optional<Hall> hall = returnHall(hallId, locationName);
         Optional<Screen> screen = screenRepository.findByScreenIdAndHallHallId(screenId, hallId);
         if (! screen.isPresent())
-            throw new TicketBookingSystemException("No such screen, please check the screen id");
+            throw new TicketBookingSystemException(NO_SUCH_SCREEN);
         Optional<Show> show = showRepository.findByShowIdAndScreenScreenId(showId, screenId);
         if (! show.isPresent())
-            throw new TicketBookingSystemException("No such show");
+            throw new TicketBookingSystemException(NO_SUCH_SHOW);
         return show.get();
+    }
+
+    @Override
+    public String performLogout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String authHeader = request.getHeader("Authorization");
+        String jwtToken = authHeader.substring(7);
+        if(authentication!=null)
+            jwtService.invalidateToken(jwtToken);
+        return "Logged out";
+    }
+
+    @Override
+    public List<Movie> getMovies() {
+        return movieRepository.findAll();
+    }
+
+    @Override
+    public List<Show> getShowsOfMovie(int movieId) {
+        Optional<Movie> movie = movieRepository.findById(movieId);
+        if (! movie.isPresent())
+            throw new TicketBookingSystemException(NO_SUCH_MOVIE);
+        List<Show> shows = showRepository.findByMovieMovieId(movieId);
+        return shows;
     }
 }

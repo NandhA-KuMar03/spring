@@ -6,10 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class LoginRequest {
-    private String email;
-    private String password;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ShowRequest {
+
+    private String showName;
+    private int movieId;
+    private int screenId;
+
 }

@@ -18,4 +18,10 @@ public interface JwtService {
     Key getSignInKey();
     Claims extractAllClaims(String jwtToken);
     Date extractExpiration(String jwtToken);
+
+    boolean isTokenInvalid(String token);
+
+    void invalidateToken(String token);
+
+
 }

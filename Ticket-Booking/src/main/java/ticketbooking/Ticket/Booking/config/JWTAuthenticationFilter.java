@@ -41,9 +41,9 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 //        if (! authHeader.startsWith("Bearer "))
 //            throw new TicketBookingSystemException("Token in wrong format");
         jwtToken = authHeader.substring(7);
-        System.out.println(jwtToken);
+//        1System.out.println(jwtToken);
         userEmail = jwtService.extractUserName(jwtToken);
-        System.out.println(userEmail);
+//        System.out.println(userEmail);
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails user = this.userDetailsService.loadUserByUsername(userEmail);
             if (jwtService.isTokenValid(jwtToken, user)){

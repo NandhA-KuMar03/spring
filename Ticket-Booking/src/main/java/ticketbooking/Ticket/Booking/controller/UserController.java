@@ -1,14 +1,17 @@
 package ticketbooking.Ticket.Booking.controller;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ticketbooking.Ticket.Booking.entity.Booking;
 import ticketbooking.Ticket.Booking.entity.Cancellation;
 import ticketbooking.Ticket.Booking.entity.Hall;
+import ticketbooking.Ticket.Booking.entity.Movie;
 import ticketbooking.Ticket.Booking.entity.Screen;
 import ticketbooking.Ticket.Booking.entity.Show;
 import ticketbooking.Ticket.Booking.entity.User;
@@ -95,5 +98,20 @@ public class UserController implements UserOperations{
     @Override
     public ResponseEntity<Show> getShow(String locationName, int hallId, int screenId, int showId) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getShow(locationName, hallId, screenId, showId));
+    }
+
+    @Override
+    public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) throws ServletException {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.performLogout(request, response));
+    }
+
+    @Override
+    public ResponseEntity<List<Movie>> getAllMovies() {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getMovies());
+    }
+
+    @Override
+    public ResponseEntity<List<Show>> getShowsOfMovie(int movieId) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.getShowsOfMovie(movieId));
     }
 }
