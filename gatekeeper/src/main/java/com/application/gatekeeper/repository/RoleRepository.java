@@ -1,12 +1,10 @@
 package com.application.gatekeeper.repository;
 
-import com.application.gatekeeper.entity.Visitor;
+import com.application.gatekeeper.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface VisitorRepository extends JpaRepository<Visitor, Integer> {
-
-    Visitor findByEmail(String email);
-
+public interface RoleRepository extends JpaRepository<Role, Integer> {
+    Role findById(int roleId);
 }

@@ -25,7 +25,7 @@ public class Blacklist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int blacklistId;
-    @OneToOne
+    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
     @JoinColumn(name = "email")
     private Visitor visitor;
     @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})

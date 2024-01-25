@@ -1,10 +1,13 @@
 package com.application.gatekeeper.controller;
 
 import com.application.gatekeeper.entity.Blacklist;
+import com.application.gatekeeper.entity.UserDetails;
+import com.application.gatekeeper.entity.Visitor;
 import com.application.gatekeeper.entity.VisitorDetails;
 import com.application.gatekeeper.request.BlacklistRequest;
 import com.application.gatekeeper.request.LoginRequest;
 import com.application.gatekeeper.request.RegisterRequest;
+import com.application.gatekeeper.request.VisitorRegisterRequest;
 import com.application.gatekeeper.request.VisitorRequest;
 import com.application.gatekeeper.response.AuthenticationResponse;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +21,13 @@ import java.util.List;
 public interface ResidentOperations {
 
     @PostMapping("/register")
-    ResponseEntity<AuthenticationResponse> createUser(@RequestBody RegisterRequest request);
+    ResponseEntity<UserDetails> createUser(@RequestBody RegisterRequest request);
 
     @PostMapping("/login")
     ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest request);
 
-    @PostMapping("/resident/create")
-    ResponseEntity<VisitorDetails> createAndScheduleVisitor(@RequestBody VisitorRequest request);
+    @PostMapping("/resident/visitors")
+    ResponseEntity<Visitor> createAndScheduleVisitor(@RequestBody VisitorRegisterRequest request);
 
     @PostMapping("/resident/visitor/schedule")
     ResponseEntity<VisitorDetails> scheduleVisitor(@RequestBody VisitorRequest request);

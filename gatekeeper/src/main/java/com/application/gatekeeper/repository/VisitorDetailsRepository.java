@@ -16,4 +16,10 @@ public interface VisitorDetailsRepository extends JpaRepository<VisitorDetails, 
 
     List<VisitorDetails> findAllByVisitorVisitorIdAndDateOfVisitAfter(int visitorId, Date date);
 
+    List<VisitorDetails> findAllByVisitorVisitorIdAndDateOfVisit(int visitorId, Date date);
+
+    List<VisitorDetails> findAllByUserUserId(int userId);
+
+    List<VisitorDetails> findAllByUserUserIdAndDateOfVisitAfter(int userId, Date date);
+
 }

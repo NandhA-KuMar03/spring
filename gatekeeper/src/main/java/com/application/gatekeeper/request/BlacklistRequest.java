@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BlacklistRequest {
 
-    private int visitorId;
+    private String email;
     private String reason;
 
 }

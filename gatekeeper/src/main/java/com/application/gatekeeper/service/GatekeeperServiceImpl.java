@@ -79,11 +79,10 @@ public class GatekeeperServiceImpl implements GatekeeperService {
 
     @Override
     public Blacklist blackListVisitor(BlacklistRequest request) {
-        int visitorId = request.getVisitorId();
-        Visitor visitor = checkForVisitor(visitorId);
+        Visitor visitor = visitorRepository.findByEmail(request.getEmail());
         visitor.setBlackListed(true);
         Date date = new Date(System.currentTimeMillis());
-        List<VisitorDetails> visitorDetails = visitorDetailsRepository.findAllByVisitorVisitorIdAndDateOfVisitAfter(visitorId, date);
+        List<VisitorDetails> visitorDetails = visitorDetailsRepository.findAllByVisitorVisitorIdAndDateOfVisitAfter(visitor.getVisitorId(), date);
         visitorDetails.stream()
                         .forEach(visitorDetail -> visitorDetail.setApproved(false));
         Blacklist blacklist = new Blacklist();
@@ -91,7 +90,6 @@ public class GatekeeperServiceImpl implements GatekeeperService {
         blacklist.setReason(request.getReason());
         visitorDetailsRepository.saveAll(visitorDetails);
         visitorRepository.save(visitor);
-        blacklistRepository.save(blacklist);
-        return null;
+        return blacklistRepository.save(blacklist);
     }
 }
