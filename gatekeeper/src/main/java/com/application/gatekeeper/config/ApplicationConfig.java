@@ -2,6 +2,7 @@ package com.application.gatekeeper.config;
 
 import com.application.gatekeeper.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +20,7 @@ import static com.application.gatekeeper.constants.ErrorConstants.USER_NOT_FOUND
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
+    @Autowired
     private final UserRepository userRepository;
 
     @Bean

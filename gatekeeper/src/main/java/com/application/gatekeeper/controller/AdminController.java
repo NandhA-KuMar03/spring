@@ -23,7 +23,6 @@ public class AdminController implements AdminOperations{
         this.adminService = adminService;
     }
 
-
     @Override
     public ResponseEntity<List<User>> getAwaitingApprovals() {
         return ResponseEntity.status(HttpStatus.OK).body(adminService.getAwaitingApprovals());

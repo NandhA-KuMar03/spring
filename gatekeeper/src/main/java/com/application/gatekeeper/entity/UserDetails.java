@@ -34,5 +34,4 @@ public class UserDetails {
     private Date dob;
     private String apartment;
 
-
 }

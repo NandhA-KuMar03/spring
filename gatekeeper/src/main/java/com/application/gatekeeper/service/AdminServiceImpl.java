@@ -9,9 +9,9 @@ import com.application.gatekeeper.request.EditInfoRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.application.gatekeeper.constants.ErrorConstants.APARTMENT_ALREADY_OCCUPIED;
 import static com.application.gatekeeper.constants.ErrorConstants.NO_SUCH_USER;
@@ -45,7 +45,7 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public List<User> getAwaitingApprovals() {
-        return userRepository.findAllUserByIsActiveTrue();
+        return userRepository.findAllUserByIsActiveFalse();
     }
 
 
@@ -62,6 +62,7 @@ public class AdminServiceImpl implements AdminService{
         if (user.get().isApproved())
             throw new GateKeeperApplicationException(USER_ALREADY_APPROVED);
         user.get().setApproved(true);
+        user.get().setActive(true);
         userRepository.save(user.get());
         return user.get();
     }
@@ -77,9 +78,15 @@ public class AdminServiceImpl implements AdminService{
         if (request.getDob() != null)
             userDetails.setDob(request.getDob());
         if (request.getApartment() != null){
-            UserDetails userDetailsByApartment = userDetailsRepository.findByApartmentIgnoreCase(request.getApartment());
-            if (userDetailsByApartment != null)
-                throw new GateKeeperApplicationException(APARTMENT_ALREADY_OCCUPIED);
+            List<UserDetails> userDetailsByApartment = userDetailsRepository.findAllByApartmentIgnoreCase(request.getApartment());
+            if (userDetailsByApartment != null){
+                List<Integer> userIds = userDetailsByApartment.stream()
+                        .map(userDetail -> userDetail.getUser().getUserId())
+                        .collect(Collectors.toList());
+                User activeUserInApartment = userRepository.findByIsActiveTrueAndUserIdIn(userIds);
+                if (activeUserInApartment != null)
+                    throw new GateKeeperApplicationException(APARTMENT_ALREADY_OCCUPIED);
+            }
             userDetails.setApartment(request.getApartment());
         }
         userDetailsRepository.save(userDetails);

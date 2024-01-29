@@ -41,7 +41,7 @@ public class ResidentController implements ResidentOperations{
 
     @Override
     public ResponseEntity<AuthenticationResponse> login(LoginRequest request) {
-        return null;
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.login(request));
     }
 
     @Override
@@ -61,11 +61,11 @@ public class ResidentController implements ResidentOperations{
 
     @Override
     public ResponseEntity<List<VisitorDetails>> getVisitors() {
-        return null;
+        return ResponseEntity.status(HttpStatus.OK).body(residentService.getVisitors());
     }
 
     @Override
     public ResponseEntity<List<VisitorDetails>> getActiveVisitors() {
-        return null;
+        return ResponseEntity.status(HttpStatus.OK).body(residentService.getActiveVisitors());
     }
 }

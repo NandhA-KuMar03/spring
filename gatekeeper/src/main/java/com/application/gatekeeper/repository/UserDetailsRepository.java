@@ -8,7 +8,6 @@ import java.util.Optional;
 
 public interface UserDetailsRepository extends JpaRepository<UserDetails, Integer> {
     Optional<UserDetails> findByUserUserId(int userId);
-    UserDetails findByApartmentIgnoreCase(String apartment);
     List<UserDetails> findAllByApartmentIgnoreCase(String apartment);
 
 }

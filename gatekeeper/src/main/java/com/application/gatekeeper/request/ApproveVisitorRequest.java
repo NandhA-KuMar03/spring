@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class ApproveVisitorRequest {
 
     private int visitorDetailId;
-    private boolean isApproved;
+    private String isApproved;
 
 }

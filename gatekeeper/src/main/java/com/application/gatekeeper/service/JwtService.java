@@ -18,5 +18,6 @@ public interface JwtService {
     Claims extractAllClaims(String jwtToken);
     Date extractExpiration(String jwtToken);
     boolean isTokenInvalid(String token);
-
+    String generateTokenForVisitor(UserDetails userDetails, Date entry, Date exit, String email);
+    boolean isVisitorValid(String jwtToken);
 }

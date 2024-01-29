@@ -22,4 +22,5 @@ public interface VisitorDetailsRepository extends JpaRepository<VisitorDetails, 
 
     List<VisitorDetails> findAllByUserUserIdAndDateOfVisitAfter(int userId, Date date);
 
+    VisitorDetails findByVisitorPasskey(String jwtToken);
 }

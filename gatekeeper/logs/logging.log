@@ -1,0 +1,49 @@
+Starting GateKeeperApplication using Java 19.0.2 with PID 9993 (/Users/nandhakumar/Desktop/spring-boot/gatekeeper/target/classes started by nandhakumar in /Users/nandhakumar/Desktop/spring-boot/gatekeeper)
+No active profile set, falling back to 1 default profile: "default"
+Started GateKeeperApplication in 2.08 seconds (process running for 2.458)
+Starting GateKeeperApplication using Java 19.0.2 with PID 10018 (/Users/nandhakumar/Desktop/spring-boot/gatekeeper/target/classes started by nandhakumar in /Users/nandhakumar/Desktop/spring-boot/gatekeeper)
+Starting GateKeeperApplication using Java 19.0.2 with PID 10018 (/Users/nandhakumar/Desktop/spring-boot/gatekeeper/target/classes started by nandhakumar in /Users/nandhakumar/Desktop/spring-boot/gatekeeper)
+No active profile set, falling back to 1 default profile: "default"
+No active profile set, falling back to 1 default profile: "default"
+Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+Finished Spring Data repository scanning in 28 ms. Found 6 JPA repository interfaces.
+Tomcat initialized with port 8080 (http)
+Initializing ProtocolHandler ["http-nio-8080"]
+Starting service [Tomcat]
+Starting Servlet engine: [Apache Tomcat/10.1.18]
+Initializing Spring embedded WebApplicationContext
+Root WebApplicationContext: initialization completed in 651 ms
+HHH000204: Processing PersistenceUnitInfo [name: default]
+HHH000412: Hibernate ORM core version 6.4.1.Final
+HHH000026: Second-level cache disabled
+No LoadTimeWeaver setup: ignoring JPA class transformer
+HikariPool-1 - Starting...
+HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@67537d64
+HikariPool-1 - Start completed.
+HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Initialized JPA EntityManagerFactory for persistence unit 'default'
+spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6af8cc6f, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@48c9ab80, org.springframework.security.web.context.SecurityContextHolderFilter@69e39194, org.springframework.security.web.header.HeaderWriterFilter@78af6ed2, org.springframework.web.filter.CorsFilter@3f6b8138, org.springframework.security.web.authentication.logout.LogoutFilter@57a914f6, com.application.gatekeeper.config.JWTAuthenticationFilter@7af3379b, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4b916c4a, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@6d9fe11f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@548f723b, org.springframework.security.web.session.SessionManagementFilter@1bb29b8d, org.springframework.security.web.access.ExceptionTranslationFilter@70d13093, org.springframework.security.web.access.intercept.AuthorizationFilter@6da35ec7]
+LiveReload server is running on port 35729
+Starting ProtocolHandler ["http-nio-8080"]
+Tomcat started on port 8080 (http) with context path ''
+Started GateKeeperApplication in 2.42 seconds (process running for 2.951)
+Started GateKeeperApplication in 2.42 seconds (process running for 2.951)
+Initializing Spring DispatcherServlet 'dispatcherServlet'
+Initializing Servlet 'dispatcherServlet'
+Completed initialization in 4 ms
+method invoked class com.application.gatekeeper.controller.ResidentController : login()arguments : [{"email":"security@cdw.com","password":"pass"}]
+method invoked class com.application.gatekeeper.controller.ResidentController : login()arguments : [{"email":"security@cdw.com","password":"pass"}]
+method invoked class com.application.gatekeeper.service.UserServiceImpl : login()arguments : [{"email":"security@cdw.com","password":"pass"}]
+method invoked class com.application.gatekeeper.service.UserServiceImpl : login()arguments : [{"email":"security@cdw.com","password":"pass"}]
+method invoked class jdk.proxy4.$Proxy141 : findUserByEmail()arguments : ["security@cdw.com"]
+method invoked class jdk.proxy4.$Proxy141 : findUserByEmail()arguments : ["security@cdw.com"]
+class jdk.proxy4.$Proxy141 : findUserByEmail()Response : {"empty":false,"present":true}
+class jdk.proxy4.$Proxy141 : findUserByEmail()Response : {"empty":false,"present":true}
+method invoked class jdk.proxy4.$Proxy141 : findUserByEmail()arguments : ["security@cdw.com"]
+method invoked class jdk.proxy4.$Proxy141 : findUserByEmail()arguments : ["security@cdw.com"]
+class jdk.proxy4.$Proxy141 : findUserByEmail()Response : {"empty":false,"present":true}
+class jdk.proxy4.$Proxy141 : findUserByEmail()Response : {"empty":false,"present":true}
+Resolved [com.application.gatekeeper.exception.GateKeeperApplicationException: You have not been approved yet]

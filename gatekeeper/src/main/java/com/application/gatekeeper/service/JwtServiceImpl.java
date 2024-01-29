@@ -18,7 +18,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Timer;
 import java.util.function.Function;
+
+import static com.application.gatekeeper.constants.ErrorConstants.USER_DEACTIVATED;
+import static com.application.gatekeeper.constants.ErrorConstants.USER_NOT_APPROVED;
 
 @Service
 public class JwtServiceImpl implements JwtService{
@@ -39,7 +43,6 @@ public class JwtServiceImpl implements JwtService{
 
     public <T> T extractClaim(String jwtToken, Function<Claims, T> claimsResolver){
         final Claims claims = extractAllClaims(jwtToken);
-
         return claimsResolver.apply(claims);
     }
     public Claims extractAllClaims(String jwtToken){
@@ -70,6 +73,17 @@ public class JwtServiceImpl implements JwtService{
                 .compact();
     }
 
+    public String generateTokenForVisitor(UserDetails userDetails, Date entry, Date exit, String email){
+        return Jwts.builder()
+                .setIssuer(userDetails.getUsername())
+                .setSubject(email)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setNotBefore(entry)
+                .setExpiration(exit)
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public boolean isTokenExpired(String jwtToken){
         return extractExpiration(jwtToken).before(new Date());
     }
@@ -94,10 +108,17 @@ public class JwtServiceImpl implements JwtService{
     private boolean isUserActive(String userEmail) {
         Optional<User> user =  userRepository.findUserByEmail(userEmail);
         if (user.isPresent()){
-            userRepository.save(user.get());
+//            if (! user.get().isApproved())
+//                throw new GateKeeperApplicationException(USER_NOT_APPROVED);
+//            if (! user.get().isActive())
+//                throw new GateKeeperApplicationException(USER_DEACTIVATED);
             return true;
         }
         return false;
+    }
+
+    public boolean isVisitorValid(String jwtToken){
+        return !extractClaim(jwtToken, Claims::getExpiration).before(new Date()) && !extractClaim(jwtToken, Claims::getNotBefore).after(new Date());
     }
 
 }

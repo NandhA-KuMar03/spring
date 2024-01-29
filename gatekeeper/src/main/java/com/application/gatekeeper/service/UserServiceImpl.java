@@ -17,14 +17,19 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.application.gatekeeper.constants.ErrorConstants.ABOVE_18_AGE;
 import static com.application.gatekeeper.constants.ErrorConstants.APARTMENT_ALREADY_OCCUPIED;
 import static com.application.gatekeeper.constants.ErrorConstants.EMAIL_ALREADY_EXISTS;
+import static com.application.gatekeeper.constants.ErrorConstants.GENDER_ERROR;
 import static com.application.gatekeeper.constants.ErrorConstants.INVALID_CREDS;
+import static com.application.gatekeeper.constants.ErrorConstants.USER_NOT_APPROVED;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -48,8 +53,15 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserDetails createUser(RegisterRequest request) {
         Optional<User> user = userRepository.findUserByEmail(request.getEmail());
-        if (! user.isPresent())
+        if (! user.isEmpty())
             throw new GateKeeperApplicationException(EMAIL_ALREADY_EXISTS);
+        LocalDate dob = request.getDob().toLocalDate();
+        LocalDate now = LocalDate.now();
+        int years = Period.between(dob,now).getYears();
+        if(years<18)
+            throw new GateKeeperApplicationException(ABOVE_18_AGE);
+        if(! (request.getGender().equalsIgnoreCase("m") || request.getGender().equalsIgnoreCase("f") || request.getGender().equalsIgnoreCase("o")))
+            throw new GateKeeperApplicationException(GENDER_ERROR);
         UserDetails saveUserDetails = new UserDetails();
         User saveUser = new User();
         if (request.getApartment() != null){
@@ -73,8 +85,10 @@ public class UserServiceImpl implements UserService{
         saveUser.setApproved(false);
         saveUser.setEmail(request.getEmail());
         saveUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        if (request.getApartment() != null)
+        if (request.getApartment() == null)
             saveUser.setRoles(roleGK);
+        else
+            saveUser.setRoles(roleResident);
         saveUserDetails.setUserFirstName(request.getFirstName());
         saveUserDetails.setUserLastName(request.getLastName());
         saveUserDetails.setUser(saveUser);
@@ -86,12 +100,16 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public AuthenticationResponse login(LoginRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        }catch (Exception e){
+            throw new GateKeeperApplicationException(INVALID_CREDS);
+        }
         var user = userRepository.findUserByEmail(request.getEmail()).orElseThrow(() -> new UsernameNotFoundException(INVALID_CREDS));
+        if (! user.isApproved())
+            throw new GateKeeperApplicationException(USER_NOT_APPROVED);
         var jwtToken = jwtService.generateToken(user);
-        userRepository.save(user);
-        return AuthenticationResponse.builder()
-                .authToken(jwtToken)
-                .build();
+        AuthenticationResponse authenticationResponse = new AuthenticationResponse(jwtToken);
+        return authenticationResponse;
     }
 }
