@@ -1,0 +1,83 @@
+        create schema gatekeeper;
+
+        drop table if exists blacklist;
+        drop table if exists role;
+        drop table if exists user;
+        drop table if exists user_details;
+        drop table if exists user_role;
+        drop table if exists visitor;
+        drop table if exists visitor_details;
+
+        create table role (
+            role_id integer not null auto_increment,
+            role_name varchar(255),
+            primary key (role_id)
+		);
+
+		create table user (
+            is_active TINYINT(1),
+            is_approved TINYINT(1),
+            user_id integer not null auto_increment,
+            email varchar(255) unique,
+            password varchar(255),
+            primary key (user_id)
+		);
+
+        create table visitor (
+            is_black_listed TINYINT(1),
+            visitor_id integer not null auto_increment,
+            email varchar(255) not null unique,
+            visitor_name varchar(255),
+            primary key (visitor_id)
+		);
+
+		create table user_details (
+            dob date,
+            user_detail_id integer not null auto_increment,
+            user_id integer,
+            apartment varchar(255),
+            gender varchar(255),
+            user_first_name varchar(255),
+            user_last_name varchar(255),
+            primary key (user_detail_id),
+            foreign key (user_id) references user (user_id)
+		);
+
+		create table user_role (
+            role_id integer not null,
+            user_id integer not null,
+            foreign key (role_id) references role (role_id)
+		);
+
+		create table blacklist (
+			blacklist_id integer not null auto_increment,
+			visitor_id integer not null,
+			user_id integer,
+			reason varchar(255),
+			primary key (blacklist_id),
+			foreign key (user_id) references user (user_id),
+			foreign key (visitor_id) references visitor (visitor_id)
+		);
+
+		create table visitor_details (
+			date_of_visit date,
+			has_visited TINYINT(1),
+			is_approved TINYINT(1),
+			time_of_entry time(6),
+			time_of_exit time(6),
+			user_id integer,
+			visitor_detail_id integer not null auto_increment,
+			visitor_id integer,
+			visitor_passkey varchar(255),
+			primary key (visitor_detail_id),
+			foreign key (user_id) references user (user_id),
+			foreign key (visitor_id) references visitor (visitor_id)
+		);
+
+		INSERT INTO `gatekeeper`.`role` (`role_id`, `role_name`) VALUES ('1', 'ROLE_RESIDENT');
+        INSERT INTO `gatekeeper`.`role` (`role_id`, `role_name`) VALUES ('2', 'ROLE_GATEKEEPER');
+        INSERT INTO `gatekeeper`.`role` (`role_id`, `role_name`) VALUES ('3', 'ROLE_ADMIN');
+
+        INSERT INTO `gatekeeper`.`user` (`is_active`, `is_approved`, `user_id`, `email`, `password`) VALUES ('1', '1', '1', 'admin@admin.com', 'pass');
+        INSERT INTO `gatekeeper`.`user_details` (`dob`, `user_detail_id`, `user_id`, `apartment`, `gender`, `user_first_name`, `user_last_name`) VALUES ('2000-01-01', '1', '1', 'Admin', 'M', 'Admin', 'Admin');
+        INSERT INTO `gatekeeper`.`user_role` VALUES ('3', '1');
